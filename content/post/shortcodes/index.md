@@ -9,15 +9,7 @@ For more details, check out the [documentation](https://stack.jimmycai.com/writi
 
 ## Bilibili video
 
-{{< bilibili "BV1d4411N7zD" >}}
-
-## Tencent video
-
-{{< tencent "g0014r3khdw" >}}
-
-## YouTube video
-
-{{< youtube "0qwALOOvUik" >}}
+{{< bilibili "BV1ZCqaYWEQU" >}}
 
 ## Generic video file
 
