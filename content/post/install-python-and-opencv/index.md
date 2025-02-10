@@ -48,7 +48,7 @@ pip install opencv-python==3.4.9.31
 ```
 
 All available versions can be seen and downloaded from the website: 
-<font color=blue><u>https://pypi.org/project/opencv-python/#history </u></font>
+<font color=blue><u>https://pypi.org/project/opencv-python/#history</u></font> 
 By the way, installed packages can be checked by typing in `pip list`.
 
 #### 5. Test
@@ -60,7 +60,7 @@ import cv2
 print(cv2.__version__)
 ```
 
-click$\,$"Run"$\,$button.
+click "Run" button.
 
 <div>
 <img src="01.png">
