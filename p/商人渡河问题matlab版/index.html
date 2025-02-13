@@ -1,0 +1,342 @@
+<!doctype html><html lang=zh-Hans dir=ltr><head><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'><meta name=description content='更新于 2024.02.13\n一、问题描述 3 名商人各带 1 名随从过河(从西岸到东岸)，一只小船最多能容纳 2 人。随从们约定：在河的任意一岸，若随从人数多于商人人数，就杀人越货. 但商人们知道了他们的约定，并且掌握着过河大权，他们该采取怎样的策略才能安全过河？\n二、算法思想 这个问题实际上是一个迷宫问题，为什么这样说呢？请听我慢慢道来.\n首先，我们将每次渡河前西岸的人员分布和船所在的位置统称为一个&ldquo;状态&rdquo;，用 $\\small [u,v,1/0]$ 表示，其中 $u,v$ 表示商人、随从在西岸的人数，末分量表示船的位置：1 表示船在西岸，0 表示船在东岸.将符合条件的状态挑出来组成允许状态集合.\n其次，船最多可容纳两个人. 将渡河方案用 $\\small [u,v]$ 表示，其中 $u,v$ 分别表示上船的商人数和随从数，并将其称为决策变量，决策变量构成的集合称为决策变量集合.\n共有 20 种允许状态和 5 个决策变量.\n初始状态为 $\\small [3,3,1]$：3 名商人、3 名随从在西岸，船停靠在西岸；\n终止状态为 $\\small [0,0,0]$：0 名商人、0 名随从在西岸，船停靠在东岸，此时商人和随从全部到达东岸，这样就确定了"迷宫"的入口和出口.\n从一个状态变换到另一个状态是通过决策变量实现的，这里的决策变量也就相当于"迷宫"中的一段路.\n所以，我们的任务就是选择可行的路径，从"迷宫"的入口走到出口.\n现在你应该觉得这好像是个迷宫问题，但心中应当还存有怀疑，因为只有入口和出口的话，并不能称得上是迷宫问题，那还有什么其他的特点呢？\n想想我们是怎样解决迷宫问题的？从入口出发，沿某一方向前进，若能走通，则继续往前走；如果不能走通或是有某一分叉可以抵达出口，则沿原路退回到刚刚的分叉点，换个方向继续前进. 重复这个过程，直至探索出所有可能的通路.\n这个问题也是这样的，从初始状态开始，尝试某种渡河方案，若能到达未经过的允许状态，则采取该渡河方案；如果不能到达任何一种允许状态或者是能够抵达终止状态，则原路返回至刚刚的状态，尝试其他的渡河方案. 重复这个过程，直到探索出所有的渡河方案.\n读到这儿，你可能会感觉到，这真的就是一个迷宫问题. 好，既然你认同了，咱就继续往下说.\n三、如何实现 怎样利用程序来解决这类问题呢？栈+回溯.\n栈(什么是栈？你可以把它简单地想象成桶装薯片(只有一端开口)，你只能从上面的薯片依次往下吃才能吃到最后一个，而不能直接吃到最后一个)，具有"后进先出"的特性，所以我们用它来存储经过(或已标记)的状态。\n初始情况：起始状态已被标记，放在栈中. 考虑某一当前状态(已标记)，则回溯法的基本思想是：\n若当前状态是终止状态，则输出路径，之后进行回溯，即返回上一层，去除当前状态标记，当前状态出栈，返回上一状态，上一状态继续尝试没有试过的决策变量； 若当前状态不是终止状态，则依次尝试决策变量： 若当前决策变量能使我到达某个未标记的允许状态，则将在其上面做标记，而后移动到那个状态(此时当前状态已发生改变)，进行递归调用，在调用语句之后，消除那个状态的标记，将其从栈中移出； 若当前决策变量不能使我到达未标记的允许状态，则尝试下一决策变量； 当前状态下所有的决策变量(不论可不可行)都试过之后，进行回溯； 正是这种回溯机制，保证了所有可行"路径"均能被找到.\n'><title>商人渡河问题(MATLAB版)</title>
+<link rel=canonical href=https://cyzhou1221.github.io/p/%E5%95%86%E4%BA%BA%E6%B8%A1%E6%B2%B3%E9%97%AE%E9%A2%98matlab%E7%89%88/><link rel=stylesheet href=/scss/style.min.663803bebe609202d5b39d848f2d7c2dc8b598a2d879efa079fa88893d29c49c.css><meta property='og:title' content="商人渡河问题(MATLAB版)"><meta property='og:description' content='更新于 2024.02.13\n一、问题描述 3 名商人各带 1 名随从过河(从西岸到东岸)，一只小船最多能容纳 2 人。随从们约定：在河的任意一岸，若随从人数多于商人人数，就杀人越货. 但商人们知道了他们的约定，并且掌握着过河大权，他们该采取怎样的策略才能安全过河？\n二、算法思想 这个问题实际上是一个迷宫问题，为什么这样说呢？请听我慢慢道来.\n首先，我们将每次渡河前西岸的人员分布和船所在的位置统称为一个&ldquo;状态&rdquo;，用 $\\small [u,v,1/0]$ 表示，其中 $u,v$ 表示商人、随从在西岸的人数，末分量表示船的位置：1 表示船在西岸，0 表示船在东岸.将符合条件的状态挑出来组成允许状态集合.\n其次，船最多可容纳两个人. 将渡河方案用 $\\small [u,v]$ 表示，其中 $u,v$ 分别表示上船的商人数和随从数，并将其称为决策变量，决策变量构成的集合称为决策变量集合.\n共有 20 种允许状态和 5 个决策变量.\n初始状态为 $\\small [3,3,1]$：3 名商人、3 名随从在西岸，船停靠在西岸；\n终止状态为 $\\small [0,0,0]$：0 名商人、0 名随从在西岸，船停靠在东岸，此时商人和随从全部到达东岸，这样就确定了"迷宫"的入口和出口.\n从一个状态变换到另一个状态是通过决策变量实现的，这里的决策变量也就相当于"迷宫"中的一段路.\n所以，我们的任务就是选择可行的路径，从"迷宫"的入口走到出口.\n现在你应该觉得这好像是个迷宫问题，但心中应当还存有怀疑，因为只有入口和出口的话，并不能称得上是迷宫问题，那还有什么其他的特点呢？\n想想我们是怎样解决迷宫问题的？从入口出发，沿某一方向前进，若能走通，则继续往前走；如果不能走通或是有某一分叉可以抵达出口，则沿原路退回到刚刚的分叉点，换个方向继续前进. 重复这个过程，直至探索出所有可能的通路.\n这个问题也是这样的，从初始状态开始，尝试某种渡河方案，若能到达未经过的允许状态，则采取该渡河方案；如果不能到达任何一种允许状态或者是能够抵达终止状态，则原路返回至刚刚的状态，尝试其他的渡河方案. 重复这个过程，直到探索出所有的渡河方案.\n读到这儿，你可能会感觉到，这真的就是一个迷宫问题. 好，既然你认同了，咱就继续往下说.\n三、如何实现 怎样利用程序来解决这类问题呢？栈+回溯.\n栈(什么是栈？你可以把它简单地想象成桶装薯片(只有一端开口)，你只能从上面的薯片依次往下吃才能吃到最后一个，而不能直接吃到最后一个)，具有"后进先出"的特性，所以我们用它来存储经过(或已标记)的状态。\n初始情况：起始状态已被标记，放在栈中. 考虑某一当前状态(已标记)，则回溯法的基本思想是：\n若当前状态是终止状态，则输出路径，之后进行回溯，即返回上一层，去除当前状态标记，当前状态出栈，返回上一状态，上一状态继续尝试没有试过的决策变量； 若当前状态不是终止状态，则依次尝试决策变量： 若当前决策变量能使我到达某个未标记的允许状态，则将在其上面做标记，而后移动到那个状态(此时当前状态已发生改变)，进行递归调用，在调用语句之后，消除那个状态的标记，将其从栈中移出； 若当前决策变量不能使我到达未标记的允许状态，则尝试下一决策变量； 当前状态下所有的决策变量(不论可不可行)都试过之后，进行回溯； 正是这种回溯机制，保证了所有可行"路径"均能被找到.\n'><meta property='og:url' content='https://cyzhou1221.github.io/p/%E5%95%86%E4%BA%BA%E6%B8%A1%E6%B2%B3%E9%97%AE%E9%A2%98matlab%E7%89%88/'><meta property='og:site_name' content="cyzhou1221's Blogs"><meta property='og:type' content='article'><meta property='article:section' content='Post'><meta property='article:tag' content='数学建模'><meta property='article:tag' content='MATLAB'><meta property='article:published_time' content='2019-03-18T00:00:00+00:00'><meta property='article:modified_time' content='2019-03-18T00:00:00+00:00'><meta name=twitter:title content="商人渡河问题(MATLAB版)"><meta name=twitter:description content='更新于 2024.02.13\n一、问题描述 3 名商人各带 1 名随从过河(从西岸到东岸)，一只小船最多能容纳 2 人。随从们约定：在河的任意一岸，若随从人数多于商人人数，就杀人越货. 但商人们知道了他们的约定，并且掌握着过河大权，他们该采取怎样的策略才能安全过河？\n二、算法思想 这个问题实际上是一个迷宫问题，为什么这样说呢？请听我慢慢道来.\n首先，我们将每次渡河前西岸的人员分布和船所在的位置统称为一个&ldquo;状态&rdquo;，用 $\\small [u,v,1/0]$ 表示，其中 $u,v$ 表示商人、随从在西岸的人数，末分量表示船的位置：1 表示船在西岸，0 表示船在东岸.将符合条件的状态挑出来组成允许状态集合.\n其次，船最多可容纳两个人. 将渡河方案用 $\\small [u,v]$ 表示，其中 $u,v$ 分别表示上船的商人数和随从数，并将其称为决策变量，决策变量构成的集合称为决策变量集合.\n共有 20 种允许状态和 5 个决策变量.\n初始状态为 $\\small [3,3,1]$：3 名商人、3 名随从在西岸，船停靠在西岸；\n终止状态为 $\\small [0,0,0]$：0 名商人、0 名随从在西岸，船停靠在东岸，此时商人和随从全部到达东岸，这样就确定了"迷宫"的入口和出口.\n从一个状态变换到另一个状态是通过决策变量实现的，这里的决策变量也就相当于"迷宫"中的一段路.\n所以，我们的任务就是选择可行的路径，从"迷宫"的入口走到出口.\n现在你应该觉得这好像是个迷宫问题，但心中应当还存有怀疑，因为只有入口和出口的话，并不能称得上是迷宫问题，那还有什么其他的特点呢？\n想想我们是怎样解决迷宫问题的？从入口出发，沿某一方向前进，若能走通，则继续往前走；如果不能走通或是有某一分叉可以抵达出口，则沿原路退回到刚刚的分叉点，换个方向继续前进. 重复这个过程，直至探索出所有可能的通路.\n这个问题也是这样的，从初始状态开始，尝试某种渡河方案，若能到达未经过的允许状态，则采取该渡河方案；如果不能到达任何一种允许状态或者是能够抵达终止状态，则原路返回至刚刚的状态，尝试其他的渡河方案. 重复这个过程，直到探索出所有的渡河方案.\n读到这儿，你可能会感觉到，这真的就是一个迷宫问题. 好，既然你认同了，咱就继续往下说.\n三、如何实现 怎样利用程序来解决这类问题呢？栈+回溯.\n栈(什么是栈？你可以把它简单地想象成桶装薯片(只有一端开口)，你只能从上面的薯片依次往下吃才能吃到最后一个，而不能直接吃到最后一个)，具有"后进先出"的特性，所以我们用它来存储经过(或已标记)的状态。\n初始情况：起始状态已被标记，放在栈中. 考虑某一当前状态(已标记)，则回溯法的基本思想是：\n若当前状态是终止状态，则输出路径，之后进行回溯，即返回上一层，去除当前状态标记，当前状态出栈，返回上一状态，上一状态继续尝试没有试过的决策变量； 若当前状态不是终止状态，则依次尝试决策变量： 若当前决策变量能使我到达某个未标记的允许状态，则将在其上面做标记，而后移动到那个状态(此时当前状态已发生改变)，进行递归调用，在调用语句之后，消除那个状态的标记，将其从栈中移出； 若当前决策变量不能使我到达未标记的允许状态，则尝试下一决策变量； 当前状态下所有的决策变量(不论可不可行)都试过之后，进行回溯； 正是这种回溯机制，保证了所有可行"路径"均能被找到.\n'><link rel="shortcut icon" href=/favicon.png></head><body class=article-page><script>(function(){const e="StackColorScheme";localStorage.getItem(e)||localStorage.setItem(e,"auto")})()</script><script>(function(){const t="StackColorScheme",e=localStorage.getItem(t),n=window.matchMedia("(prefers-color-scheme: dark)").matches===!0;e=="dark"||e==="auto"&&n?document.documentElement.dataset.scheme="dark":document.documentElement.dataset.scheme="light"})()</script><div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky"><button class="hamburger hamburger--spin" type=button id=toggle-menu aria-label=切换菜单>
+<span class=hamburger-box><span class=hamburger-inner></span></span></button><header><figure class=site-avatar><a href=/><img src=/img/avatar_hu_ea68bb827e45560.png width=300 height=300 class=site-logo loading=lazy alt=Avatar></a></figure><div class=site-meta><h1 class=site-name><a href=/>cyzhou1221's Blogs</a></h1><h2 class=site-description>细雨斜风作晓寒，淡烟疏柳媚晴滩.</h2></div></header><ol class=menu-social><li><a href=https://github.com/cyzhou1221 target=_blank title=GitHub rel=me><svg class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6.0 00-1.3-3.2 4.2 4.2.0 00-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3.0 00-6.2.0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2.0 00-.1 3.2A4.6 4.6.0 004 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg></a></li></ol><ol class=menu id=main-menu><li><a href=/><svg class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><polyline points="5 12 3 12 12 3 21 12 19 12"/><path d="M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/><path d="M9 21v-6a2 2 0 012-2h2a2 2 0 012 2v6"/></svg>
+<span>Home</span></a></li><li><a href=/archives/><svg class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><rect x="3" y="4" width="18" height="4" rx="2"/><path d="M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+<span>Archives</span></a></li><li><a href=/search/><svg class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="10" cy="10" r="7"/><line x1="21" y1="21" x2="15" y2="15"/></svg>
+<span>Search</span></a></li><li><a href=/links/><svg class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M10 14a3.5 3.5.0 005 0l4-4a3.5 3.5.0 00-5-5l-.5.5"/><path d="M14 10a3.5 3.5.0 00-5 0l-4 4a3.5 3.5.0 005 5l.5-.5"/></svg>
+<span>Links</span></a></li><li class=menu-bottom-section><ol class=menu><li id=dark-mode-toggle><svg class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="8" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<svg class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="16" cy="12" r="2"/><rect x="2" y="6" width="20" height="12" rx="6"/></svg>
+<span>暗色模式</span></li></ol></li></ol></aside><aside class="sidebar right-sidebar sticky"><section class="widget archives"><div class=widget-icon><svg class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><line x1="5" y1="9" x2="19" y2="9"/><line x1="5" y1="15" x2="19" y2="15"/><line x1="11" y1="4" x2="7" y2="20"/><line x1="17" y1="4" x2="13" y2="20"/></svg></div><h2 class="widget-title section-title">目录</h2><div class=widget--toc><nav id=TableOfContents><ol><li><ol><li><a href=#一问题描述>一、问题描述</a></li><li><a href=#二算法思想>二、算法思想</a></li><li><a href=#三如何实现>三、如何实现</a></li><li><a href=#四流程图>四、流程图</a><ol><li><a href=#1-主程序>1. 主程序</a></li><li><a href=#2-递归函数-crossriver>2. 递归函数 crossRiver</a></li></ol></li><li><a href=#五源程序代码>五、源程序代码</a><ol><li><a href=#1-主程序-dfsm>1. 主程序 DFS.m</a></li><li><a href=#2-过河函数-crossriverm>2. 过河函数 crossRiver.m</a></li><li><a href=#3-输出解的函数-showsolutionm>3. 输出解的函数 showSolution.m</a></li></ol></li><li><a href=#六求解结果>六、求解结果</a></li><li><a href=#七小结>七、小结</a></li></ol></li></ol></nav></div></section></aside><main class="main full-width"><article class=main-article><header class=article-header><div class=article-details><header class=article-category><a href=/categories/blog/>Blog</a></header><div class=article-title-wrapper><h2 class=article-title><a href=/p/%E5%95%86%E4%BA%BA%E6%B8%A1%E6%B2%B3%E9%97%AE%E9%A2%98matlab%E7%89%88/>商人渡河问题(MATLAB版)</a></h2></div><footer class=article-time><div><svg class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><path d="M11.795 21H5a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v4"/><circle cx="18" cy="18" r="4"/><path d="M15 3v4"/><path d="M7 3v4"/><path d="M3 11h16"/><path d="M18 16.496V18l1 1"/></svg>
+<time class=article-time--published>Mar 18, 2019</time></div><div><svg class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+<time class=article-time--reading>阅读时长: 4 分钟</time></div></footer></div></header><section class=article-content><p>更新于 2024.02.13</p><h3 id=一问题描述>一、问题描述</h3><p>3 名商人各带 1 名随从过河(从西岸到东岸)，一只小船最多能容纳 2 人。随从们约定：在河的任意一岸，若随从人数多于商人人数，就杀人越货. 但商人们知道了他们的约定，并且掌握着过河大权，他们该采取怎样的策略才能安全过河？</p><h3 id=二算法思想>二、算法思想</h3><p>这个问题实际上是一个<font color=red><strong>迷宫问题</strong></font>，为什么这样说呢？请听我慢慢道来.</p><p>首先，我们将每次渡河前西岸的人员分布和船所在的位置统称为一个<font color=red><b>&ldquo;状态&rdquo;</b></font>，用 $\small [u,v,1/0]$ 表示，其中 $u,v$ 表示商人、随从在西岸的人数，末分量表示船的位置：1 表示船在西岸，0 表示船在东岸.将符合条件的状态挑出来组成<font color=red><strong>允许状态集合</strong></font>.</p><p>其次，船最多可容纳两个人. 将渡河方案用 $\small [u,v]$ 表示，其中 $u,v$ 分别表示上船的商人数和随从数，并将其称为<font color=red><strong>决策变量</strong></font>，决策变量构成的集合称为<font color=red><strong>决策变量集合</strong></font>.</p><p>共有 20 种允许状态和 5 个决策变量.</p><p><font color=blue><strong>初始状态</strong></font>为 $\small [3,3,1]$：3 名商人、3 名随从在西岸，船停靠在西岸；</p><p><font color=blue><strong>终止状态</strong></font>为 $\small [0,0,0]$：0 名商人、0 名随从在西岸，船停靠在东岸，此时商人和随从全部到达东岸，这样就确定了"迷宫"的入口和出口.</p><p>从一个状态变换到另一个状态是通过决策变量实现的，这里的决策变量也就相当于"迷宫"中的一段路.</p><p>所以，我们的任务就是选择可行的路径，从"迷宫"的入口走到出口.</p><p>现在你应该觉得这好像是个迷宫问题，但心中应当还存有怀疑，因为只有入口和出口的话，并不能称得上是迷宫问题，那还有什么其他的特点呢？</p><p>想想我们是怎样解决迷宫问题的？从入口出发，沿某一方向前进，若能走通，则继续往前走；如果不能走通或是有某一分叉可以抵达出口，则沿原路退回到刚刚的分叉点，换个方向继续前进. 重复这个过程，直至探索出所有可能的通路.</p><p>这个问题也是这样的，从初始状态开始，尝试某种渡河方案，若能到达未经过的允许状态，则采取该渡河方案；如果不能到达任何一种允许状态或者是能够抵达终止状态，则原路返回至刚刚的状态，尝试其他的渡河方案. 重复这个过程，直到探索出所有的渡河方案.</p><p>读到这儿，你可能会感觉到，这真的就是一个迷宫问题. 好，既然你认同了，咱就继续往下说.</p><h3 id=三如何实现>三、如何实现</h3><p>怎样利用程序来解决这类问题呢？<font color=red><strong>栈+回溯</strong></font>.</p><p><font color=red><strong>栈</strong></font>(什么是栈？你可以把它简单地想象成桶装薯片(只有一端开口)，你只能从上面的薯片依次往下吃才能吃到最后一个，而不能直接吃到最后一个)，具有"后进先出"的特性，所以我们用它来存储经过(或已标记)的状态。</p><p>初始情况：起始状态已被标记，放在栈中. 考虑某一当前状态(已标记)，则<font color=red><strong>回溯法</strong></font>的基本思想是：</p><ol><li>若当前状态是终止状态，则输出路径，之后进行<strong>回溯</strong>，即返回上一层，去除当前状态标记，当前状态出栈，返回上一状态，上一状态继续尝试没有试过的决策变量；</li><li>若当前状态不是终止状态，则依次尝试决策变量：<ul><li>若当前决策变量能使我到达某个<strong>未标记</strong>的<strong>允许状态</strong>，则将在其上面<strong>做标记</strong>，而后<strong>移动</strong>到那个状态(此时当前状态已发生改变)，进行<strong>递归调用</strong>，在调用语句之后，消除那个状态的标记，将其从栈中移出；</li><li>若当前决策变量不能使我到达<strong>未标记</strong>的<strong>允许状态</strong>，则尝试下一决策变量；
+当前状态下所有的决策变量(不论可不可行)都试过之后，进行<strong>回溯</strong>；</li></ul></li></ol><p>正是这种<strong>回溯</strong>机制，保证了所有可行"路径"均能被找到.</p><h3 id=四流程图>四、流程图</h3><h4 id=1-主程序>1. 主程序</h4><div align=center><img src=01.png width=200></div><h4 id=2-递归函数-crossriver>2. 递归函数 crossRiver</h4><div align=center><img src=02.png></div><h3 id=五源程序代码>五、源程序代码</h3><h4 id=1-主程序-dfsm>1. 主程序 DFS.m</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span><span class=lnt>43
+</span><span class=lnt>44
+</span><span class=lnt>45
+</span><span class=lnt>46
+</span><span class=lnt>47
+</span><span class=lnt>48
+</span><span class=lnt>49
+</span><span class=lnt>50
+</span><span class=lnt>51
+</span><span class=lnt>52
+</span><span class=lnt>53
+</span><span class=lnt>54
+</span><span class=lnt>55
+</span><span class=lnt>56
+</span><span class=lnt>57
+</span><span class=lnt>58
+</span><span class=lnt>59
+</span><span class=lnt>60
+</span><span class=lnt>61
+</span><span class=lnt>62
+</span><span class=lnt>63
+</span><span class=lnt>64
+</span><span class=lnt>65
+</span><span class=lnt>66
+</span><span class=lnt>67
+</span><span class=lnt>68
+</span><span class=lnt>69
+</span><span class=lnt>70
+</span><span class=lnt>71
+</span><span class=lnt>72
+</span><span class=lnt>73
+</span><span class=lnt>74
+</span><span class=lnt>75
+</span><span class=lnt>76
+</span><span class=lnt>77
+</span><span class=lnt>78
+</span><span class=lnt>79
+</span><span class=lnt>80
+</span><span class=lnt>81
+</span><span class=lnt>82
+</span><span class=lnt>83
+</span><span class=lnt>84
+</span><span class=lnt>85
+</span><span class=lnt>86
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-matlab data-lang=matlab><span class=line><span class=cl><span class=n>clear</span><span class=p>;</span><span class=n>clc</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=c>% 商人过河问题</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% global 用于声明全局变量</span>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>State</span> <span class=n>D</span> <span class=n>SS</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=c>% State 允许状态集合</span>
+</span></span><span class=line><span class=cl><span class=c>% D     决策变量集合</span>
+</span></span><span class=line><span class=cl><span class=c>% SS    状态标记集合</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>m</span> <span class=p>=</span> <span class=mi>3</span><span class=p>;</span>   <span class=c>% 商人数</span>
+</span></span><span class=line><span class=cl><span class=n>n</span> <span class=p>=</span> <span class=mi>3</span><span class=p>;</span>   <span class=c>% 随从数</span>
+</span></span><span class=line><span class=cl><span class=n>max</span> <span class=p>=</span> <span class=mi>2</span><span class=p>;</span> <span class=c>% 船所能容纳的最大人数</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% 1.设置允许状态集合{[u,v,1/0]}</span>
+</span></span><span class=line><span class=cl><span class=c>% u,v 分别表示商人、随从在西岸的人数</span>
+</span></span><span class=line><span class=cl><span class=c>% 末分量：1 表示船在西岸，0 表示船在东岸</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>State</span> <span class=p>=</span> <span class=p>[];</span>
+</span></span><span class=line><span class=cl><span class=n>numS</span> <span class=p>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c>% 允许状态的数目</span>
+</span></span><span class=line><span class=cl><span class=c>% 设定符合要求的人员状态</span>
+</span></span><span class=line><span class=cl><span class=c>% 任意一岸，商人数不小于随从数</span>
+</span></span><span class=line><span class=cl><span class=c>% 或者，某一岸商人数为 0</span>
+</span></span><span class=line><span class=cl><span class=k>for</span> <span class=n>u</span> <span class=p>=</span> <span class=mi>0</span><span class=p>:</span><span class=n>m</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=n>v</span> <span class=p>=</span> <span class=mi>0</span><span class=p>:</span><span class=n>n</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>((</span><span class=n>u</span> <span class=o>&gt;</span><span class=p>=</span> <span class=n>v</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=n>m</span><span class=o>-</span><span class=n>u</span><span class=p>)</span> <span class=o>&gt;</span><span class=p>=</span> <span class=p>(</span><span class=n>n</span><span class=o>-</span><span class=n>v</span><span class=p>))</span> <span class=o>||</span> <span class=n>u</span> <span class=o>==</span> <span class=mi>0</span> <span class=o>||</span> <span class=n>u</span> <span class=o>==</span> <span class=n>m</span><span class=p>)</span>  
+</span></span><span class=line><span class=cl>            <span class=n>numS</span> <span class=p>=</span> <span class=n>numS</span> <span class=o>+</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=n>State</span><span class=p>(</span><span class=n>numS</span><span class=p>,:)</span> <span class=p>=</span> <span class=p>[</span><span class=n>u</span><span class=p>,</span><span class=n>v</span><span class=p>];</span>         
+</span></span><span class=line><span class=cl>        <span class=k>end</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span>
+</span></span><span class=line><span class=cl><span class=k>end</span>
+</span></span><span class=line><span class=cl><span class=c>% 设定船的状态</span>
+</span></span><span class=line><span class=cl><span class=c>% [u,v,1] 表示船在西岸，[u,v,0] 表示船在东岸</span>
+</span></span><span class=line><span class=cl><span class=n>State</span> <span class=p>=</span> <span class=p>[</span><span class=n>State</span><span class=p>,</span> <span class=nb>ones</span><span class=p>(</span><span class=n>numS</span><span class=p>,</span><span class=mi>1</span><span class=p>);</span><span class=n>State</span><span class=p>,</span> <span class=nb>zeros</span><span class=p>(</span><span class=n>numS</span><span class=p>,</span><span class=mi>1</span><span class=p>)];</span>
+</span></span><span class=line><span class=cl><span class=n>numS</span> <span class=p>=</span> <span class=n>numS</span><span class=o>*</span><span class=mi>2</span><span class=p>;</span> <span class=c>% 状态数翻倍</span>
+</span></span><span class=line><span class=cl><span class=nb>disp</span><span class=p>(</span><span class=s>&#39;允许状态集合:&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=n>State</span>
+</span></span><span class=line><span class=cl><span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;共%d种允许状态\n\n&#39;</span><span class=p>,</span> <span class=n>numS</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% 2.设定决策变量集合</span>
+</span></span><span class=line><span class=cl><span class=c>% max: 船所能容纳的最大人数</span>
+</span></span><span class=line><span class=cl><span class=c>% [u,v]: u,v 分别表示船上商人和随从人数</span>
+</span></span><span class=line><span class=cl><span class=n>D</span> <span class=p>=</span> <span class=p>[];</span>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>numD</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=n>numD</span> <span class=p>=</span> <span class=mi>0</span><span class=p>;</span> <span class=c>% 决策变量个数</span>
+</span></span><span class=line><span class=cl><span class=k>for</span> <span class=n>u</span> <span class=p>=</span> <span class=mi>0</span><span class=p>:</span><span class=n>m</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=n>v</span> <span class=p>=</span> <span class=mi>0</span><span class=p>:</span><span class=n>n</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=p>((</span><span class=n>u</span><span class=o>+</span><span class=n>v</span><span class=p>)</span> <span class=o>&gt;</span><span class=p>=</span> <span class=mi>1</span> <span class=o>&amp;&amp;</span> <span class=p>(</span><span class=n>u</span><span class=o>+</span><span class=n>v</span><span class=p>)</span> <span class=o>&lt;</span><span class=p>=</span> <span class=n>max</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>            <span class=n>numD</span> <span class=p>=</span> <span class=n>numD</span> <span class=o>+</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>            <span class=n>D</span><span class=p>(</span><span class=n>numD</span><span class=p>,:)</span> <span class=p>=</span> <span class=p>[</span><span class=n>u</span><span class=p>,</span><span class=n>v</span><span class=p>];</span>
+</span></span><span class=line><span class=cl>        <span class=k>end</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span>
+</span></span><span class=line><span class=cl><span class=k>end</span>
+</span></span><span class=line><span class=cl><span class=nb>disp</span><span class=p>(</span><span class=s>&#39;决策变量集合:&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=n>D</span>
+</span></span><span class=line><span class=cl><span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;共%d个决策变量\n\n&#39;</span><span class=p>,</span><span class=n>numD</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% 3.设置状态访问标记集合</span>
+</span></span><span class=line><span class=cl><span class=c>% 对状态进行编号: 1 ~ numS</span>
+</span></span><span class=line><span class=cl><span class=c>% SS(i) == 1，表示 i 号状态已访问;</span>
+</span></span><span class=line><span class=cl><span class=c>% SS(i) == 0，表示 i 号状态未访问;</span>
+</span></span><span class=line><span class=cl><span class=n>SS</span> <span class=p>=</span> <span class=nb>zeros</span><span class=p>(</span><span class=n>numS</span><span class=p>,</span><span class=mi>1</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>pos_end</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>pos_passed</span> <span class=n>k</span> <span class=n>count</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=c>% pos_end    终止状态编号</span>
+</span></span><span class=line><span class=cl><span class=c>% pos_passed 留下访问标记的状态编号</span>
+</span></span><span class=line><span class=cl><span class=c>% k          留下访问标记的状态数目</span>
+</span></span><span class=line><span class=cl><span class=c>% count      解的个数</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% 初始状态(3,3,1),编号:</span>
+</span></span><span class=line><span class=cl><span class=n>pos_begin</span> <span class=p>=</span> <span class=nb>find</span><span class=p>(</span><span class=n>ismember</span><span class=p>(</span><span class=n>State</span><span class=p>,</span> <span class=p>[</span><span class=mi>3</span><span class=p>,</span><span class=mi>3</span><span class=p>,</span><span class=mi>1</span><span class=p>],</span> <span class=s>&#39;rows&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=mi>1</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=c>% 终止状态(0,0,0),编号:</span>
+</span></span><span class=line><span class=cl><span class=n>pos_end</span> <span class=p>=</span> <span class=nb>find</span><span class=p>(</span><span class=n>ismember</span><span class=p>(</span><span class=n>State</span><span class=p>,</span> <span class=p>[</span><span class=mi>0</span><span class=p>,</span><span class=mi>0</span><span class=p>,</span><span class=mi>0</span><span class=p>],</span> <span class=s>&#39;rows&#39;</span><span class=p>)</span> <span class=o>==</span> <span class=mi>1</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% 4.对参数进行初始化</span>
+</span></span><span class=line><span class=cl><span class=n>count</span> <span class=p>=</span> <span class=mi>0</span><span class=p>;</span>          
+</span></span><span class=line><span class=cl><span class=n>SS</span><span class=p>(</span><span class=n>pos_begin</span><span class=p>)</span> <span class=p>=</span> <span class=mi>1</span><span class=p>;</span>          <span class=c>% 在初始位置留下访问标记</span>
+</span></span><span class=line><span class=cl><span class=n>pos_passed</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span> <span class=p>=</span> <span class=n>pos_begin</span><span class=p>;</span>  <span class=c>% 留下访问标记的状态编号</span>
+</span></span><span class=line><span class=cl><span class=n>k</span> <span class=p>=</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% 5.调用递归函数</span>
+</span></span><span class=line><span class=cl><span class=n>crossRiver</span><span class=p>(</span><span class=n>pos_begin</span><span class=p>);</span>    
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=n>count</span> <span class=o>==</span> <span class=mi>0</span>
+</span></span><span class=line><span class=cl>    <span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;No solution.\n&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=k>end</span>
+</span></span></code></pre></td></tr></table></div></div><h4 id=2-过河函数-crossriverm>2. 过河函数 crossRiver.m</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span><span class=lnt>32
+</span><span class=lnt>33
+</span><span class=lnt>34
+</span><span class=lnt>35
+</span><span class=lnt>36
+</span><span class=lnt>37
+</span><span class=lnt>38
+</span><span class=lnt>39
+</span><span class=lnt>40
+</span><span class=lnt>41
+</span><span class=lnt>42
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-matlab data-lang=matlab><span class=line><span class=cl><span class=k>function</span><span class=w> </span><span class=nf>crossRiver</span><span class=p>(</span>pos_currentS<span class=p>)</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c>% pos_currentS 当前状态编号</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c>% 全局变量</span>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>State</span> <span class=n>D</span> <span class=n>numD</span> <span class=n>SS</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=c>% State 允许状态集合</span>
+</span></span><span class=line><span class=cl><span class=c>% numD  决策变量数目</span>
+</span></span><span class=line><span class=cl><span class=c>% D     决策变量集合</span>
+</span></span><span class=line><span class=cl><span class=c>% SS    状态标记集合</span>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>pos_passed</span> <span class=n>pos_end</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=c>% pos_passed 留下访问标记的状态编号</span>
+</span></span><span class=line><span class=cl><span class=c>% pos_end    终止状态编号</span>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>k</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=c>% k          留下访问标记的状态数目,初值为1</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=k>if</span> <span class=n>pos_currentS</span> <span class=o>==</span> <span class=n>pos_end</span> <span class=c>% 终止情况</span>
+</span></span><span class=line><span class=cl>    <span class=n>showSolution</span><span class=p>();</span>
+</span></span><span class=line><span class=cl><span class=k>else</span>                       <span class=c>% 非终止情况</span>
+</span></span><span class=line><span class=cl>    <span class=k>for</span> <span class=nb>i</span> <span class=p>=</span> <span class=mi>1</span><span class=p>:</span><span class=n>numD</span>
+</span></span><span class=line><span class=cl>        <span class=n>possibleS</span> <span class=p>=</span> <span class=nb>zeros</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>3</span><span class=p>);</span>  <span class=c>% 事先为可能的状态分配空间      </span>
+</span></span><span class=line><span class=cl>        <span class=n>possibleS</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>1</span><span class=p>:</span><span class=mi>2</span><span class=p>)</span> <span class=p>=</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_currentS</span><span class=p>,</span><span class=mi>1</span><span class=p>:</span><span class=mi>2</span><span class=p>)</span> <span class=o>+</span> <span class=p>((</span><span class=o>-</span><span class=mi>1</span><span class=p>)</span>^<span class=p>(</span><span class=n>State</span><span class=p>(</span><span class=n>pos_currentS</span><span class=p>,</span><span class=mi>3</span><span class=p>)))</span><span class=o>*</span><span class=n>D</span><span class=p>(</span><span class=nb>i</span><span class=p>,:);</span>
+</span></span><span class=line><span class=cl>        <span class=c>% 船从西岸到东岸，西岸人数减少；从东岸到西岸，西岸人数增加.</span>
+</span></span><span class=line><span class=cl>        <span class=n>possibleS</span><span class=p>(</span><span class=mi>1</span><span class=p>,</span><span class=mi>3</span><span class=p>)</span> <span class=p>=</span> <span class=mi>1</span> <span class=o>-</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_currentS</span><span class=p>,</span><span class=mi>3</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>        <span class=c>% 船的状态也随之改变</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>        <span class=c>% 按行判断可能的状态是否属于允许状态集合</span>
+</span></span><span class=line><span class=cl>        <span class=nb>sign</span> <span class=p>=</span> <span class=n>ismember</span><span class=p>(</span><span class=n>State</span><span class=p>,</span> <span class=n>possibleS</span><span class=p>,</span> <span class=s>&#39;rows&#39;</span><span class=p>);</span> 
+</span></span><span class=line><span class=cl>        <span class=c>% 如果可能的状态属于允许状态集合且未被标记，则进行访问</span>
+</span></span><span class=line><span class=cl>        <span class=c>% 这样做可以避免回到经过的状态，否则程序将陷入死循环</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=n>sum</span><span class=p>(</span><span class=nb>sign</span><span class=p>)</span> <span class=o>==</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>            <span class=p>[</span><span class=n>pos_next</span><span class=p>,</span><span class=o>~</span><span class=p>]</span> <span class=p>=</span> <span class=nb>find</span><span class=p>(</span><span class=nb>sign</span> <span class=o>==</span> <span class=mi>1</span><span class=p>);</span>   <span class=c>% pos_next:可能状态的编号</span>
+</span></span><span class=line><span class=cl>            <span class=k>if</span> <span class=n>SS</span><span class=p>(</span><span class=n>pos_next</span><span class=p>)</span> <span class=o>==</span> <span class=mi>0</span>            <span class=c>% 若未被标记              </span>
+</span></span><span class=line><span class=cl>                <span class=n>SS</span><span class=p>(</span><span class=n>pos_next</span><span class=p>)</span> <span class=p>=</span> <span class=mi>1</span><span class=p>;</span>           <span class=c>% 则进行标记    </span>
+</span></span><span class=line><span class=cl>                <span class=n>k</span> <span class=p>=</span> <span class=n>k</span> <span class=o>+</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>                <span class=n>pos_passed</span><span class=p>(</span><span class=n>k</span><span class=p>)</span> <span class=p>=</span> <span class=n>pos_next</span><span class=p>;</span>   <span class=c>% 将其添加到标记点组成的集合中</span>
+</span></span><span class=line><span class=cl>                <span class=n>crossRiver</span><span class=p>(</span><span class=n>pos_next</span><span class=p>);</span>     <span class=c>% 调用自身，进行递归                            </span>
+</span></span><span class=line><span class=cl>                <span class=n>SS</span><span class=p>(</span><span class=n>pos_next</span><span class=p>)</span> <span class=p>=</span> <span class=mi>0</span><span class=p>;</span>           <span class=c>% 消除标记</span>
+</span></span><span class=line><span class=cl>                <span class=n>k</span> <span class=p>=</span> <span class=n>k</span> <span class=o>-</span> <span class=mi>1</span><span class=p>;</span>                    <span class=c>% 将其从标记点组成的集合中移出</span>
+</span></span><span class=line><span class=cl>            <span class=k>end</span>
+</span></span><span class=line><span class=cl>        <span class=k>end</span>      
+</span></span><span class=line><span class=cl>    <span class=k>end</span>  
+</span></span><span class=line><span class=cl><span class=k>end</span>
+</span></span></code></pre></td></tr></table></div></div><h4 id=3-输出解的函数-showsolutionm>3. 输出解的函数 showSolution.m</h4><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span><span class=lnt>19
+</span><span class=lnt>20
+</span><span class=lnt>21
+</span><span class=lnt>22
+</span><span class=lnt>23
+</span><span class=lnt>24
+</span><span class=lnt>25
+</span><span class=lnt>26
+</span><span class=lnt>27
+</span><span class=lnt>28
+</span><span class=lnt>29
+</span><span class=lnt>30
+</span><span class=lnt>31
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-matlab data-lang=matlab><span class=line><span class=cl><span class=k>function</span><span class=w> </span><span class=nf>showSolution</span><span class=p>()</span><span class=w>
+</span></span></span><span class=line><span class=cl><span class=w></span><span class=c>% 全局变量</span>
+</span></span><span class=line><span class=cl><span class=k>global</span> <span class=n>State</span> <span class=n>pos_passed</span> <span class=n>k</span> <span class=n>count</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=c>% State   允许状态集合</span>
+</span></span><span class=line><span class=cl><span class=c>% pos_passed  留下访问标记的状态编号</span>
+</span></span><span class=line><span class=cl><span class=c>% k       留下访问标记的状态数目，初值为1</span>
+</span></span><span class=line><span class=cl><span class=c>% count   解的个数，初值为0</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=n>count</span> <span class=p>=</span> <span class=n>count</span> <span class=o>+</span> <span class=mi>1</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;Solution %d...\n&#39;</span><span class=p>,</span> <span class=n>count</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;\t\t  West       East\n&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=k>for</span> <span class=nb>i</span> <span class=p>=</span> <span class=mi>1</span><span class=p>:</span><span class=n>k</span> 
+</span></span><span class=line><span class=cl>    <span class=c>% 输出经过的状态</span>
+</span></span><span class=line><span class=cl>    <span class=n>fprintf</span><span class=p>(</span><span class=s>&#39; State%2d:(%d,%d)&#39;</span><span class=p>,</span> <span class=nb>i</span><span class=p>,</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>1</span><span class=p>),</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>2</span><span class=p>));</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>3</span><span class=p>)</span> <span class=o>==</span> <span class=mi>1</span>      <span class=c>% 船在西岸</span>
+</span></span><span class=line><span class=cl>        <span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;★_____&#39;</span><span class=p>);</span>  <span class=c>% ★ 表示船</span>
+</span></span><span class=line><span class=cl>    <span class=k>else</span> <span class=c>% State(pos_passed(i),3) == 0  % 船在东岸</span>
+</span></span><span class=line><span class=cl>        <span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;_____★&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span>
+</span></span><span class=line><span class=cl>    <span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;(%d,%d)\n&#39;</span><span class=p>,</span> <span class=mi>3</span> <span class=o>-</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>1</span><span class=p>),</span> <span class=mi>3</span> <span class=o>-</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>2</span><span class=p>));</span>
+</span></span><span class=line><span class=cl>    <span class=c>% 输出渡河方案</span>
+</span></span><span class=line><span class=cl>    <span class=k>if</span> <span class=nb>i</span> <span class=o>~=</span> <span class=n>k</span>
+</span></span><span class=line><span class=cl>        <span class=k>if</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>3</span><span class=p>)</span> <span class=o>==</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl>            <span class=n>fprintf</span><span class=p>(</span><span class=s>&#39; Plan\t:--(%d,%d)-&gt;\n&#39;</span><span class=p>,</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>1</span><span class=p>)</span> <span class=o>-</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=o>+</span><span class=mi>1</span><span class=p>),</span><span class=mi>1</span><span class=p>),</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>2</span><span class=p>)</span> <span class=o>-</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=o>+</span><span class=mi>1</span><span class=p>),</span> <span class=mi>2</span><span class=p>));</span>
+</span></span><span class=line><span class=cl>        <span class=k>else</span>
+</span></span><span class=line><span class=cl>            <span class=n>fprintf</span><span class=p>(</span><span class=s>&#39; Plan\t:&lt;-(%d,%d)--\n&#39;</span><span class=p>,</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=o>+</span><span class=mi>1</span><span class=p>),</span><span class=mi>1</span><span class=p>)</span> <span class=o>-</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>1</span><span class=p>),</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=o>+</span><span class=mi>1</span><span class=p>),</span><span class=mi>2</span><span class=p>)</span> <span class=o>-</span> <span class=n>State</span><span class=p>(</span><span class=n>pos_passed</span><span class=p>(</span><span class=nb>i</span><span class=p>),</span><span class=mi>2</span><span class=p>));</span>
+</span></span><span class=line><span class=cl>        <span class=k>end</span>
+</span></span><span class=line><span class=cl>    <span class=k>end</span>
+</span></span><span class=line><span class=cl><span class=k>end</span>
+</span></span><span class=line><span class=cl><span class=n>fprintf</span><span class=p>(</span><span class=s>&#39;\n&#39;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=k>end</span>
+</span></span></code></pre></td></tr></table></div></div><h3 id=六求解结果>六、求解结果</h3><div align=center><img src=03.png width=250>
+<img src=04.png width=250>
+<img src=05.png width=250>
+<img src=06.png width=250></div><h3 id=七小结>七、小结</h3><p>这是一个经典的过河问题，本质就是在各允许状态之间寻找符合要求的路径，考虑到可能有多条路径，需要使用栈保存经过的状态，以便回溯. 几点心得：</p><ol><li>合适的数据结构——<font color=#00A600><strong>栈</strong></font>，对于此问题的处理起到了至关重要的作用；</li><li>对允许状态进行<font color=#00A600><strong>编号</strong></font>，方便编程，同时增强了程序的通用性；</li><li>采用<font color=#00A600><strong>标记</strong></font>的方式记录经过的状态，与直接删除经过的状态相比，有着很大的优越性，一是保证了回溯的进行，二是避免了删除操作；</li><li>类似的问题还有<font color=#0000c6><b>八皇后问题、人狗鸡米过河问题</b></font>以及其他版本的过河问题；</li></ol><p>Plus: 如有错误、可以改进的地方、或任何想说的，请在评论区留言！</p></section><footer class=article-footer><section class=article-tags><a href=/tags/%E6%95%B0%E5%AD%A6%E5%BB%BA%E6%A8%A1/>数学建模</a>
+<a href=/tags/matlab/>MATLAB</a></section><section class=article-copyright><svg class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentcolor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z"/><circle cx="12" cy="12" r="9"/><path d="M14.5 9a3.5 4 0 100 6"/></svg>
+<span>Licensed under CC BY-NC-SA 4.0</span></section></footer><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css integrity=sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV crossorigin=anonymous><script src=https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js integrity=sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8 crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js integrity=sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05 crossorigin=anonymous defer></script><script>window.addEventListener("DOMContentLoaded",()=>{const e=document.querySelector(".main-article");renderMathInElement(e,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1},{left:"\\(",right:"\\)",display:!1},{left:"\\[",right:"\\]",display:!0}],ignoredClasses:["gist"]})})</script></article><aside class=related-content--wrapper><h2 class=section-title>相关文章</h2><div class=related-content><div class="flex article-list--tile"><article><a href=/p/%E6%95%B0%E7%8B%AC%E6%B8%B8%E6%88%8F%E6%95%B0%E6%A8%A1%E5%A4%84%E7%90%86matlab%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/><div class=article-details><h2 class=article-title>数独游戏——数模处理(MATLAB整数规划)</h2></div></a></article><article><a href=/p/cvmat-%E8%BD%AC%E5%8C%96%E4%B8%BA-qimage-deep-copy/><div class=article-details><h2 class=article-title>cv::Mat 转化为 QImage (Deep copy)</h2></div></a></article></div></div></aside><div class=disqus-container><div id=disqus_thread></div><script>window.disqus_config=function(){},function(){if(["localhost","127.0.0.1"].indexOf(window.location.hostname)!=-1){document.getElementById("disqus_thread").innerHTML="Disqus comments not available by default when the website is previewed locally.";return}var t=document,e=t.createElement("script");e.async=!0,e.src="//cyzhou1221.disqus.com/embed.js",e.setAttribute("data-timestamp",+new Date),(t.head||t.body).appendChild(e)}()</script><noscript>Please enable JavaScript to view the <a href=https://disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript><a href=https://disqus.com class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><style>.disqus-container{background-color:var(--card-background);border-radius:var(--card-border-radius);box-shadow:var(--shadow-l1);padding:var(--card-padding)}</style><script>window.addEventListener("onColorSchemeChange",e=>{typeof DISQUS=="object"&&DISQUS.reset({reload:!0})})</script><footer class=site-footer><section class=copyright>&copy;
+2020 -
+2025 cyzhou1221's Blogs</section><section class=powerby>使用 <a href=https://gohugo.io/ target=_blank rel=noopener>Hugo</a> 构建<br>主题 <b><a href=https://github.com/CaiJimmy/hugo-theme-stack target=_blank rel=noopener data-version=3.30.0>Stack</a></b> 由 <a href=https://jimmycai.com target=_blank rel=noopener>Jimmy</a> 设计</section></footer><div class=pswp tabindex=-1 role=dialog aria-hidden=true><div class=pswp__bg></div><div class=pswp__scroll-wrap><div class=pswp__container><div class=pswp__item></div><div class=pswp__item></div><div class=pswp__item></div></div><div class="pswp__ui pswp__ui--hidden"><div class=pswp__top-bar><div class=pswp__counter></div><button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+<button class="pswp__button pswp__button--share" title=Share></button>
+<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button><div class=pswp__preloader><div class=pswp__preloader__icn><div class=pswp__preloader__cut><div class=pswp__preloader__donut></div></div></div></div></div><div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"><div class=pswp__share-tooltip></div></div><button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+</button>
+<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button><div class=pswp__caption><div class=pswp__caption__center></div></div></div></div></div><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo=" crossorigin=anonymous defer></script><script src=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU=" crossorigin=anonymous defer></script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css crossorigin=anonymous><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css crossorigin=anonymous></main></div><script src=https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z+KMkF24hUW8WePSA9HM=" crossorigin=anonymous></script><script type=text/javascript src=/ts/main.1e9a3bafd846ced4c345d084b355fb8c7bae75701c338f8a1f8a82c780137826.js defer></script><script>(function(){const e=document.createElement("link");e.href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap",e.type="text/css",e.rel="stylesheet",document.head.appendChild(e)})()</script></body></html>

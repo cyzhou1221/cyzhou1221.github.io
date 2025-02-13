@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Qt on cyzhou1221's Blogs</title><link>https://cyzhou1221.github.io/tags/qt/</link><description>Recent content in Qt on cyzhou1221's Blogs</description><generator>Hugo -- gohugo.io</generator><language>zh-Hans</language><lastBuildDate>Tue, 06 Aug 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://cyzhou1221.github.io/tags/qt/index.xml" rel="self" type="application/rss+xml"/><item><title>cv::Mat 转化为 QImage (Deep copy)</title><link>https://cyzhou1221.github.io/p/cvmat-%E8%BD%AC%E5%8C%96%E4%B8%BA-qimage-deep-copy/</link><pubDate>Tue, 06 Aug 2019 00:00:00 +0000</pubDate><guid>https://cyzhou1221.github.io/p/cvmat-%E8%BD%AC%E5%8C%96%E4%B8%BA-qimage-deep-copy/</guid><description>&lt;h3 id="一qimage的深拷贝和浅拷贝">一、QImage的深拷贝和浅拷贝
+&lt;/h3>&lt;p>首先说一下什么是&lt;font color=red> 深拷贝 &lt;/font>和&lt;font color=red> 浅拷贝&lt;/font>。&lt;/p>
+&lt;p>&lt;font color=green>When dealing with shared objects, there are two ways of copying an object. We usually speak about deep and shallow copies. A deep copy implies duplicating an object. A shallow copy is a reference copy, i.e. just a pointer to a shared data block. Making a deep copy can be expensive in terms of memory and CPU. In contrast, the benefit of shallow copied is that a program does not need to duplicate data unnecessarily, which results in lower memory use and less copying of data. &lt;/font>&lt;/p>
+&lt;p>&lt;font color=blue>浅拷贝和深拷贝的区别&lt;/font>：浅拷贝后，两个不同的变量背后是&lt;font color=Aqua>同一块内存空间&lt;/font>，它们只是名字不同而已，常见的浅拷贝有指针传递和引用类型；而深拷贝过后，两个不同的变量分别占据两块&lt;font color=Aqua>不同的内存空间&lt;/font>(大小相同)，二者互不干扰，大多数赋值操作采用深拷贝的方式进行。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="err">我们再来看下&lt;/span>&lt;span class="n">QImage类几个常见的构造函数&lt;/span>&lt;span class="err">：&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">bytesPerLine&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">bytesPerLine&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">**&lt;/span> &lt;span class="err">所需参数：&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">指向图像数据的&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="err">型指针；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像宽度；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像高度；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像格式；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像的每行字节数&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="err">通道&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="err">宽度&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">通过&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data可以看出这几个构造函数都是采用浅拷贝的方式进行的&lt;/span>&lt;span class="err">；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">**&lt;/span> &lt;span class="err">深拷贝&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">QRect&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">rectangle&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">QRect&lt;/span>&lt;span class="p">())&lt;/span> &lt;span class="k">const&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">Returns&lt;/span> &lt;span class="n">a&lt;/span> &lt;span class="n">sub&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">area&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">image&lt;/span> &lt;span class="n">as&lt;/span> &lt;span class="n">a&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">image&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">The&lt;/span> &lt;span class="n">returned&lt;/span> &lt;span class="n">image&lt;/span> &lt;span class="n">is&lt;/span> &lt;span class="n">copied&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">position&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">rectangle&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="n">rectangle&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">())&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">image&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">and&lt;/span> &lt;span class="n">will&lt;/span> &lt;span class="n">always&lt;/span> &lt;span class="n">have&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">size&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">given&lt;/span> &lt;span class="n">rectangle&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">In&lt;/span> &lt;span class="n">areas&lt;/span> &lt;span class="n">beyond&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">image&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pixels&lt;/span> &lt;span class="n">are&lt;/span> &lt;span class="n">set&lt;/span> &lt;span class="n">to&lt;/span> &lt;span class="mf">0.&lt;/span> &lt;span class="n">For&lt;/span> &lt;span class="mi">32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">RGB&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">black&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="mi">32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">ARGB&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">transparent&lt;/span> &lt;span class="n">black&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="mi">8&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">color&lt;/span> &lt;span class="n">with&lt;/span> &lt;span class="n">index&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">color&lt;/span> &lt;span class="n">table&lt;/span> &lt;span class="n">which&lt;/span> &lt;span class="n">can&lt;/span> &lt;span class="n">be&lt;/span> &lt;span class="n">anything&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">Qt&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">color0&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">If&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">given&lt;/span> &lt;span class="n">rectangle&lt;/span> &lt;span class="n">is&lt;/span> &lt;span class="n">a&lt;/span> &lt;span class="n">null&lt;/span> &lt;span class="n">rectangle&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">entire&lt;/span> &lt;span class="n">image&lt;/span> &lt;span class="n">is&lt;/span> &lt;span class="n">copied&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="二cvmat转化为qimage的背景">二、cv::Mat转化为QImage的背景
+&lt;/h3>&lt;p>在使用 &lt;font color=DeepPink>Qt+OpenCV&lt;/font> 写程序时，常常需要使用 OpenCV 对图像进行处理，然后利用 Qt 将图像显示出来，所以需要将 &lt;code>cv::Mat&lt;/code> 类型转换为 &lt;code>QImage&lt;/code> 类型。&lt;/p>
+&lt;p>通常是利用 &lt;code>QImage&lt;/code> 的构造函数进行转换，但是，从构造函数的参数可以看出，这是通过&lt;font color=SeaGre>浅拷贝&lt;/font>实现的，所以在 &lt;code>QImage&lt;/code> 对象的生存期内，必须保证 &lt;code>uchar *data&lt;/code> 指向的内存空间不会被释放。因此在返回 &lt;code>QImage&lt;/code> 对象前，需要进行深拷贝。&lt;/p>
+&lt;h3 id="三代码">三、代码
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span> &lt;span class="nf">Mat2QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">cv&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Mat&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">inputMat&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">cv&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Mat&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">QImage&lt;/span> &lt;span class="n">qImg&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">inputMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">channels&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">//灰度图像
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tmpMat&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">inputMat&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">qImg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">//指向所用图像数据块的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">rows&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">channels&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="c1">//bytesPerLine，每行的字节数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Format_Indexed8&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">//利用8bits存储灰度值
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span> &lt;span class="c1">//Mat是BGR排列, QImage是RGB排列，利用cvtColor变换颜色空间
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">cv&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">cvtColor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">inputMat&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">CV_BGR2RGB&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">qImg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">//指向所用图像数据块的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">rows&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">channels&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="c1">//bytesPerLine，每行的字节数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Format_RGB888&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">//利用24bits真彩色存储RGB值
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">qImg&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">copy&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="c1">//deep copy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Plus: &lt;code>QImage&lt;/code> 转 &lt;code>cv::Mat&lt;/code> 代码可见博文 &lt;a class="link" href="https://blog.csdn.net/liyuanbhu/article/details/86307283" target="_blank" rel="noopener"
+>大牛博文传送门&lt;/a>&lt;/p></description></item></channel></rss>

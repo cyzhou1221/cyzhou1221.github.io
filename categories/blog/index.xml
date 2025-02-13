@@ -1,0 +1,888 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on cyzhou1221's Blogs</title><link>https://cyzhou1221.github.io/categories/blog/</link><description>Recent content in Blog on cyzhou1221's Blogs</description><generator>Hugo -- gohugo.io</generator><language>zh-Hans</language><lastBuildDate>Tue, 06 Aug 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://cyzhou1221.github.io/categories/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>cv::Mat 转化为 QImage (Deep copy)</title><link>https://cyzhou1221.github.io/p/cvmat-%E8%BD%AC%E5%8C%96%E4%B8%BA-qimage-deep-copy/</link><pubDate>Tue, 06 Aug 2019 00:00:00 +0000</pubDate><guid>https://cyzhou1221.github.io/p/cvmat-%E8%BD%AC%E5%8C%96%E4%B8%BA-qimage-deep-copy/</guid><description>&lt;h3 id="一qimage的深拷贝和浅拷贝">一、QImage的深拷贝和浅拷贝
+&lt;/h3>&lt;p>首先说一下什么是&lt;font color=red> 深拷贝 &lt;/font>和&lt;font color=red> 浅拷贝&lt;/font>。&lt;/p>
+&lt;p>&lt;font color=green>When dealing with shared objects, there are two ways of copying an object. We usually speak about deep and shallow copies. A deep copy implies duplicating an object. A shallow copy is a reference copy, i.e. just a pointer to a shared data block. Making a deep copy can be expensive in terms of memory and CPU. In contrast, the benefit of shallow copied is that a program does not need to duplicate data unnecessarily, which results in lower memory use and less copying of data. &lt;/font>&lt;/p>
+&lt;p>&lt;font color=blue>浅拷贝和深拷贝的区别&lt;/font>：浅拷贝后，两个不同的变量背后是&lt;font color=Aqua>同一块内存空间&lt;/font>，它们只是名字不同而已，常见的浅拷贝有指针传递和引用类型；而深拷贝过后，两个不同的变量分别占据两块&lt;font color=Aqua>不同的内存空间&lt;/font>(大小相同)，二者互不干扰，大多数赋值操作采用深拷贝的方式进行。&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="err">我们再来看下&lt;/span>&lt;span class="n">QImage类几个常见的构造函数&lt;/span>&lt;span class="err">：&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">bytesPerLine&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">width&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">height&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="kt">int&lt;/span> &lt;span class="n">bytesPerLine&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">Format&lt;/span> &lt;span class="n">format&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">**&lt;/span> &lt;span class="err">所需参数：&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">指向图像数据的&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="err">型指针；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像宽度；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像高度；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像格式；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">*&lt;/span> &lt;span class="err">图像的每行字节数&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="err">通道&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="err">宽度&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="err">通过&lt;/span>&lt;span class="n">uchar&lt;/span> &lt;span class="o">*&lt;/span>&lt;span class="n">data可以看出这几个构造函数都是采用浅拷贝的方式进行的&lt;/span>&lt;span class="err">；&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="o">**&lt;/span> &lt;span class="err">深拷贝&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">copy&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">QRect&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">rectangle&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">QRect&lt;/span>&lt;span class="p">())&lt;/span> &lt;span class="k">const&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">Returns&lt;/span> &lt;span class="n">a&lt;/span> &lt;span class="n">sub&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">area&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">image&lt;/span> &lt;span class="n">as&lt;/span> &lt;span class="n">a&lt;/span> &lt;span class="k">new&lt;/span> &lt;span class="n">image&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">The&lt;/span> &lt;span class="n">returned&lt;/span> &lt;span class="n">image&lt;/span> &lt;span class="n">is&lt;/span> &lt;span class="n">copied&lt;/span> &lt;span class="n">from&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">position&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">rectangle&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="n">rectangle&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">y&lt;/span>&lt;span class="p">())&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">image&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">and&lt;/span> &lt;span class="n">will&lt;/span> &lt;span class="n">always&lt;/span> &lt;span class="n">have&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">size&lt;/span> &lt;span class="n">of&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">given&lt;/span> &lt;span class="n">rectangle&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">In&lt;/span> &lt;span class="n">areas&lt;/span> &lt;span class="n">beyond&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">image&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">pixels&lt;/span> &lt;span class="n">are&lt;/span> &lt;span class="n">set&lt;/span> &lt;span class="n">to&lt;/span> &lt;span class="mf">0.&lt;/span> &lt;span class="n">For&lt;/span> &lt;span class="mi">32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">RGB&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">black&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="mi">32&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">ARGB&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">transparent&lt;/span> &lt;span class="n">black&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="mi">8&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">color&lt;/span> &lt;span class="n">with&lt;/span> &lt;span class="n">index&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="n">in&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">color&lt;/span> &lt;span class="n">table&lt;/span> &lt;span class="n">which&lt;/span> &lt;span class="n">can&lt;/span> &lt;span class="n">be&lt;/span> &lt;span class="n">anything&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="k">for&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">bit&lt;/span> &lt;span class="n">images&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="k">this&lt;/span> &lt;span class="n">means&lt;/span> &lt;span class="n">Qt&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">color0&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">If&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">given&lt;/span> &lt;span class="n">rectangle&lt;/span> &lt;span class="n">is&lt;/span> &lt;span class="n">a&lt;/span> &lt;span class="n">null&lt;/span> &lt;span class="n">rectangle&lt;/span> &lt;span class="n">the&lt;/span> &lt;span class="n">entire&lt;/span> &lt;span class="n">image&lt;/span> &lt;span class="n">is&lt;/span> &lt;span class="n">copied&lt;/span>&lt;span class="p">.&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="二cvmat转化为qimage的背景">二、cv::Mat转化为QImage的背景
+&lt;/h3>&lt;p>在使用 &lt;font color=DeepPink>Qt+OpenCV&lt;/font> 写程序时，常常需要使用 OpenCV 对图像进行处理，然后利用 Qt 将图像显示出来，所以需要将 &lt;code>cv::Mat&lt;/code> 类型转换为 &lt;code>QImage&lt;/code> 类型。&lt;/p>
+&lt;p>通常是利用 &lt;code>QImage&lt;/code> 的构造函数进行转换，但是，从构造函数的参数可以看出，这是通过&lt;font color=SeaGre>浅拷贝&lt;/font>实现的，所以在 &lt;code>QImage&lt;/code> 对象的生存期内，必须保证 &lt;code>uchar *data&lt;/code> 指向的内存空间不会被释放。因此在返回 &lt;code>QImage&lt;/code> 对象前，需要进行深拷贝。&lt;/p>
+&lt;h3 id="三代码">三、代码
+&lt;/h3>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-cpp" data-lang="cpp">&lt;span class="line">&lt;span class="cl">&lt;span class="n">QImage&lt;/span> &lt;span class="nf">Mat2QImage&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">cv&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Mat&lt;/span> &lt;span class="o">&amp;amp;&lt;/span>&lt;span class="n">inputMat&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">cv&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Mat&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">QImage&lt;/span> &lt;span class="n">qImg&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">inputMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">channels&lt;/span>&lt;span class="p">()&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="c1">//灰度图像
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tmpMat&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">inputMat&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">qImg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">//指向所用图像数据块的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">rows&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">channels&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="c1">//bytesPerLine，每行的字节数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Format_Indexed8&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">//利用8bits存储灰度值
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">{&lt;/span> &lt;span class="c1">//Mat是BGR排列, QImage是RGB排列，利用cvtColor变换颜色空间
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">cv&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">cvtColor&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">inputMat&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">CV_BGR2RGB&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">qImg&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="p">((&lt;/span>&lt;span class="k">const&lt;/span> &lt;span class="n">uchar&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">data&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="c1">//指向所用图像数据块的指针
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">rows&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">cols&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="n">tmpMat&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">channels&lt;/span>&lt;span class="p">(),&lt;/span> &lt;span class="c1">//bytesPerLine，每行的字节数
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="n">QImage&lt;/span>&lt;span class="o">::&lt;/span>&lt;span class="n">Format_RGB888&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c1">//利用24bits真彩色存储RGB值
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span> &lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">return&lt;/span> &lt;span class="n">qImg&lt;/span>&lt;span class="p">.&lt;/span>&lt;span class="n">copy&lt;/span>&lt;span class="p">();&lt;/span>&lt;span class="c1">//deep copy
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c1">&lt;/span>&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Plus: &lt;code>QImage&lt;/code> 转 &lt;code>cv::Mat&lt;/code> 代码可见博文 &lt;a class="link" href="https://blog.csdn.net/liyuanbhu/article/details/86307283" target="_blank" rel="noopener"
+>大牛博文传送门&lt;/a>&lt;/p></description></item><item><title>数独游戏——数模处理(MATLAB整数规划)</title><link>https://cyzhou1221.github.io/p/%E6%95%B0%E7%8B%AC%E6%B8%B8%E6%88%8F%E6%95%B0%E6%A8%A1%E5%A4%84%E7%90%86matlab%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/</link><pubDate>Sun, 24 Mar 2019 00:00:00 +0000</pubDate><guid>https://cyzhou1221.github.io/p/%E6%95%B0%E7%8B%AC%E6%B8%B8%E6%88%8F%E6%95%B0%E6%A8%A1%E5%A4%84%E7%90%86matlab%E6%95%B4%E6%95%B0%E8%A7%84%E5%88%92/</guid><description>&lt;h3 id="一问题描述">一、问题描述
+&lt;/h3>&lt;p>数独是源自18世纪瑞士的一种数学游戏，盘面是个九宫，每一宫又分为九个小格。在这八十一格中根据已知数字和解题条件，利用逻辑和推理，在其他的空格上填入1-9的数字，使1-9中的每个数字在&lt;font color=red>每一行、每一列和每一宫&lt;/font>中都只出现一次。&lt;/p>
+&lt;h3 id="二模型建立">二、模型建立
+&lt;/h3>&lt;p>将 $9\times9$ 的数独矩阵转化为 $9\times9\times9$ 的三维矩阵 ，三维矩阵中每一个元素的值为0或1。例如，若原数独矩阵的第一行第二列的数字为7，则三维矩阵第7层的对应位置为1，其它层该位置皆为0，总共个 $9\times9\times9$ 变量，用 $X(i,j,k)$ 表示第 $k$ 层矩阵的第 $i$ 行第 $j$ 列的元素。&lt;/p>
+&lt;p>约束条件：&lt;/p>
+&lt;ol>
+&lt;li>
+$$\sum_{k=1}^9X(i,j,k)=1, i=1,2,\cdots,9,j=1,2,\cdots,9$$&lt;/li>
+&lt;li>
+$$\sum_{j=1}^9X(i,j,k)=1, i=1,2,\cdots,9,k=1,2,\cdots,9$$&lt;/li>
+&lt;li>
+$$\sum_{i=1}^9X(i,j,k)=1, j=1,2,\cdots,9,k=1,2,\cdots,9$$&lt;/li>
+&lt;li>
+$$\sum_{i=1}^3\sum_{j=1}^3X(i+U,j+V,k)=1,k=1,2,\cdots,9,$$$$U,V\in\lbrace0,3,6\rbrace$$&lt;/li>
+&lt;/ol>
+&lt;p>总共 $4\times9^2$ 个约束条件。&lt;/p>
+&lt;p>利用整数规划求解，MATLAB整数规划命令：&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-matlab" data-lang="matlab">&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">fval&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">exitflag&lt;/span>&lt;span class="p">]=&lt;/span>&lt;span class="n">intlinprog&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">intcon&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">A&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">b&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">Aeq&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">beq&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">lb&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">ub&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>$$
+min f^Tx$$$$\text{subject to} \begin{cases} A\cdot x&lt;=b \\ Aeq\cdot x=beq \\ lb&lt;=x&lt;=ub \\ \text{$x$(intcon) are integers}\end{cases}
+$$&lt;h3 id="三求解思路">三、求解思路
+&lt;/h3>&lt;p>聊之前，先说说系数矩阵 $Aeq$ 的构造，从简单说起：&lt;/p>
+$$\begin{pmatrix} c_{_1},c{_2},\cdots,c{_n}\end{pmatrix}\begin{pmatrix} x{_1} \\ x{_2} \\ \vdots \\ x{_n}\end{pmatrix}$$$$\begin{pmatrix} x_{_1},x{_2},\cdots,x{_n}\end{pmatrix}\begin{pmatrix} c{_1} \\ c{_2} \\ \vdots \\ c{_n}\end{pmatrix}$$&lt;p>
+我们采用第一种，利用系数向量的转置乘以变量向量：将系数放在相应变量的位置，然后对整个矩阵或者是向量进行转置，有几个约束条件，与之对应的，系数矩阵 $Aeq$ 就有多少行，具体做法见下文代码部分。&lt;/p>
+&lt;p>&lt;strong>求解思路&lt;/strong>：&lt;/p>
+&lt;div align=center>
+&lt;img src="01.jpeg" width=300>
+&lt;/div>
+&lt;h3 id="四源程序">四、源程序
+&lt;/h3>&lt;h4 id="1-主程序-shudum">1. 主程序 shudu.m
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt"> 10
+&lt;/span>&lt;span class="lnt"> 11
+&lt;/span>&lt;span class="lnt"> 12
+&lt;/span>&lt;span class="lnt"> 13
+&lt;/span>&lt;span class="lnt"> 14
+&lt;/span>&lt;span class="lnt"> 15
+&lt;/span>&lt;span class="lnt"> 16
+&lt;/span>&lt;span class="lnt"> 17
+&lt;/span>&lt;span class="lnt"> 18
+&lt;/span>&lt;span class="lnt"> 19
+&lt;/span>&lt;span class="lnt"> 20
+&lt;/span>&lt;span class="lnt"> 21
+&lt;/span>&lt;span class="lnt"> 22
+&lt;/span>&lt;span class="lnt"> 23
+&lt;/span>&lt;span class="lnt"> 24
+&lt;/span>&lt;span class="lnt"> 25
+&lt;/span>&lt;span class="lnt"> 26
+&lt;/span>&lt;span class="lnt"> 27
+&lt;/span>&lt;span class="lnt"> 28
+&lt;/span>&lt;span class="lnt"> 29
+&lt;/span>&lt;span class="lnt"> 30
+&lt;/span>&lt;span class="lnt"> 31
+&lt;/span>&lt;span class="lnt"> 32
+&lt;/span>&lt;span class="lnt"> 33
+&lt;/span>&lt;span class="lnt"> 34
+&lt;/span>&lt;span class="lnt"> 35
+&lt;/span>&lt;span class="lnt"> 36
+&lt;/span>&lt;span class="lnt"> 37
+&lt;/span>&lt;span class="lnt"> 38
+&lt;/span>&lt;span class="lnt"> 39
+&lt;/span>&lt;span class="lnt"> 40
+&lt;/span>&lt;span class="lnt"> 41
+&lt;/span>&lt;span class="lnt"> 42
+&lt;/span>&lt;span class="lnt"> 43
+&lt;/span>&lt;span class="lnt"> 44
+&lt;/span>&lt;span class="lnt"> 45
+&lt;/span>&lt;span class="lnt"> 46
+&lt;/span>&lt;span class="lnt"> 47
+&lt;/span>&lt;span class="lnt"> 48
+&lt;/span>&lt;span class="lnt"> 49
+&lt;/span>&lt;span class="lnt"> 50
+&lt;/span>&lt;span class="lnt"> 51
+&lt;/span>&lt;span class="lnt"> 52
+&lt;/span>&lt;span class="lnt"> 53
+&lt;/span>&lt;span class="lnt"> 54
+&lt;/span>&lt;span class="lnt"> 55
+&lt;/span>&lt;span class="lnt"> 56
+&lt;/span>&lt;span class="lnt"> 57
+&lt;/span>&lt;span class="lnt"> 58
+&lt;/span>&lt;span class="lnt"> 59
+&lt;/span>&lt;span class="lnt"> 60
+&lt;/span>&lt;span class="lnt"> 61
+&lt;/span>&lt;span class="lnt"> 62
+&lt;/span>&lt;span class="lnt"> 63
+&lt;/span>&lt;span class="lnt"> 64
+&lt;/span>&lt;span class="lnt"> 65
+&lt;/span>&lt;span class="lnt"> 66
+&lt;/span>&lt;span class="lnt"> 67
+&lt;/span>&lt;span class="lnt"> 68
+&lt;/span>&lt;span class="lnt"> 69
+&lt;/span>&lt;span class="lnt"> 70
+&lt;/span>&lt;span class="lnt"> 71
+&lt;/span>&lt;span class="lnt"> 72
+&lt;/span>&lt;span class="lnt"> 73
+&lt;/span>&lt;span class="lnt"> 74
+&lt;/span>&lt;span class="lnt"> 75
+&lt;/span>&lt;span class="lnt"> 76
+&lt;/span>&lt;span class="lnt"> 77
+&lt;/span>&lt;span class="lnt"> 78
+&lt;/span>&lt;span class="lnt"> 79
+&lt;/span>&lt;span class="lnt"> 80
+&lt;/span>&lt;span class="lnt"> 81
+&lt;/span>&lt;span class="lnt"> 82
+&lt;/span>&lt;span class="lnt"> 83
+&lt;/span>&lt;span class="lnt"> 84
+&lt;/span>&lt;span class="lnt"> 85
+&lt;/span>&lt;span class="lnt"> 86
+&lt;/span>&lt;span class="lnt"> 87
+&lt;/span>&lt;span class="lnt"> 88
+&lt;/span>&lt;span class="lnt"> 89
+&lt;/span>&lt;span class="lnt"> 90
+&lt;/span>&lt;span class="lnt"> 91
+&lt;/span>&lt;span class="lnt"> 92
+&lt;/span>&lt;span class="lnt"> 93
+&lt;/span>&lt;span class="lnt"> 94
+&lt;/span>&lt;span class="lnt"> 95
+&lt;/span>&lt;span class="lnt"> 96
+&lt;/span>&lt;span class="lnt"> 97
+&lt;/span>&lt;span class="lnt"> 98
+&lt;/span>&lt;span class="lnt"> 99
+&lt;/span>&lt;span class="lnt">100
+&lt;/span>&lt;span class="lnt">101
+&lt;/span>&lt;span class="lnt">102
+&lt;/span>&lt;span class="lnt">103
+&lt;/span>&lt;span class="lnt">104
+&lt;/span>&lt;span class="lnt">105
+&lt;/span>&lt;span class="lnt">106
+&lt;/span>&lt;span class="lnt">107
+&lt;/span>&lt;span class="lnt">108
+&lt;/span>&lt;span class="lnt">109
+&lt;/span>&lt;span class="lnt">110
+&lt;/span>&lt;span class="lnt">111
+&lt;/span>&lt;span class="lnt">112
+&lt;/span>&lt;span class="lnt">113
+&lt;/span>&lt;span class="lnt">114
+&lt;/span>&lt;span class="lnt">115
+&lt;/span>&lt;span class="lnt">116
+&lt;/span>&lt;span class="lnt">117
+&lt;/span>&lt;span class="lnt">118
+&lt;/span>&lt;span class="lnt">119
+&lt;/span>&lt;span class="lnt">120
+&lt;/span>&lt;span class="lnt">121
+&lt;/span>&lt;span class="lnt">122
+&lt;/span>&lt;span class="lnt">123
+&lt;/span>&lt;span class="lnt">124
+&lt;/span>&lt;span class="lnt">125
+&lt;/span>&lt;span class="lnt">126
+&lt;/span>&lt;span class="lnt">127
+&lt;/span>&lt;span class="lnt">128
+&lt;/span>&lt;span class="lnt">129
+&lt;/span>&lt;span class="lnt">130
+&lt;/span>&lt;span class="lnt">131
+&lt;/span>&lt;span class="lnt">132
+&lt;/span>&lt;span class="lnt">133
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-matlab" data-lang="matlab">&lt;span class="line">&lt;span class="cl">&lt;span class="n">clear&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="n">clc&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">N&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">9&lt;/span>^&lt;span class="mi">3&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 变量个数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">M&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">9&lt;/span>^&lt;span class="mi">2&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% 约束条件个数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 总体思路是利用整数规划进行求解&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% MATLAB整数规划命令：&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% [x,fval,exitflag]=intlinprog(f,intcon,A,b,Aeq,beq,lb,ub)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 分别为目标函数、整型约束、不等式约束，等式约束和解的上下界&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 下面分为几步进行:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 一、设置参数;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 二、求解;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 三、结果显示;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 一、设置参数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 1.目标函数，并无实际意义&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">f&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 2.intcon:设置某些变量的取值为整数,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 这里设置全部变量&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">intcon&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 3.设置A,b&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">A&lt;/span>&lt;span class="p">=[];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">b&lt;/span>&lt;span class="p">=[];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 4.设置上下限&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% (1).上限&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">ub&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">ones&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% (2).确定下限&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">X0&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 设置数独矩阵B,9x9矩阵&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">B&lt;/span>&lt;span class="p">=[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">6&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">8&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">4&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">7&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">6&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 显示原始数独矩阵&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">showShudu&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">B&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 根据数独矩阵确定某些变量的下限为1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 这些变量为已知条件，上限也为2，在求解过程中不会变动&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="nb">i&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">j&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">B&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nb">j&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">~=&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">X0&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nb">j&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">B&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nb">j&lt;/span>&lt;span class="p">))=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% trans:自定义函数，对参数中的每一个二维矩阵进行转置操作&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 这样做是因为reshape命令是按照列来提取矩阵中的元素&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 在本问题中，变量是按行排列的&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 所以为了获取等式约束中的系数，需要进行转置操作&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">X0&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="n">trans&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">X0&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">lb&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">reshape&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">X0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 5.设置beq&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">beq&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">ones&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 6.设置Aeq&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">Aeq&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">M&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">count&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 用于遍历Aeq的列数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% i,j,k分别表示行数、列数、层数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% Amid用于向Aeq中输入变量前的系数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 为了与变量相对应，同样需要进行转置操作&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% (1).任何一层的任何一行只能有一个1 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">k&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">i&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% 清空Amid&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,:,&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">)=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 某一层的某一行设为1 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Aeq&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="p">,:)=&lt;/span>&lt;span class="nb">reshape&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trans&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Amid&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">count&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% (2).任何一层的任何一列只能有一个1 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">k&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">j&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% 清空Amid&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">(:,&lt;/span>&lt;span class="nb">j&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">)=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 某一层的某一列设为1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Aeq&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="p">,:)=&lt;/span>&lt;span class="nb">reshape&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trans&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Amid&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">count&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% (3).9层矩阵的同一位置只可以出现一个1 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="nb">i&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">j&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% 清空Amid&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nb">j&lt;/span>&lt;span class="p">,:)=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 所有层的某一位置设为1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Aeq&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="p">,:)=&lt;/span>&lt;span class="nb">reshape&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trans&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Amid&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">count&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% (4).九宫格约束&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">k&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">u&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">6&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">v&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">6&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% 清空Amid&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Amid&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">)=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="c">% 小九宫格位置设为1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">Aeq&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="p">,:)=&lt;/span>&lt;span class="nb">reshape&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trans&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">Amid&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">N&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">count&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="n">count&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 二、求解&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 整数规划范式：&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% x=intlinprog(f,intcon,A,b,Aeq,beq,lb,ub)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="o">~&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">exitflag&lt;/span>&lt;span class="p">]=&lt;/span>&lt;span class="n">intlinprog&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">f&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">intcon&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">A&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">b&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">Aeq&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">beq&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">lb&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">ub&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 三、结果显示&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="n">exitflag&lt;/span>&lt;span class="o">&amp;lt;&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;解不存在.\n&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">else&lt;/span>&lt;span class="c">% exitflag&amp;gt;0,说明存在解&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">X1&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">reshape&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">x&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 利用intlinprog得到的解不一定是十分准确的整数，在此整数化&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">X1&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">round&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">trans&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">X1&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 每层的矩阵都乘以对应的层数，从而得到该位置应填入的数字&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">k&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">X1&lt;/span>&lt;span class="p">(:,:,&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">)=&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="n">X1&lt;/span>&lt;span class="p">(:,:,&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 合并第三维(对应位置元素相加)，得到完成后的数独矩阵&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">C&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">round&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">sum&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">X1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 结果显示&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">showShudu&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">C&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h4 id="2-三维矩阵的转置函数-transm">2. 三维矩阵的转置函数 trans.m
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;span class="lnt">6
+&lt;/span>&lt;span class="lnt">7
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-matlab" data-lang="matlab">&lt;span class="line">&lt;span class="cl">&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>B&lt;span class="p">=&lt;/span>&lt;span class="nf">trans&lt;/span>&lt;span class="p">(&lt;/span>A&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">% 实现三维数组的转置&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">[&lt;/span>&lt;span class="o">~&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="o">~&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">p&lt;/span>&lt;span class="p">]=&lt;/span>&lt;span class="nb">size&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">A&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">B&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">size&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">A&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">k&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">p&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">B&lt;/span>&lt;span class="p">(:,:,&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">)=&lt;/span>&lt;span class="n">A&lt;/span>&lt;span class="p">(:,:,&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="o">&amp;#39;&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h4 id="3-显示矩阵的函数-showshudum">3. 显示矩阵的函数 showShudu.m
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-matlab" data-lang="matlab">&lt;span class="line">&lt;span class="cl">&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">showShudu&lt;/span>&lt;span class="p">(&lt;/span>A&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">% 以九宫格的形式显示矩阵,A:9x9矩阵&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">figure&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="n">hold&lt;/span> &lt;span class="n">on&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">axis&lt;/span> &lt;span class="n">off&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="n">axis&lt;/span> &lt;span class="n">equal&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 画线&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">rectangle&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;Position&amp;#39;&lt;/span>&lt;span class="p">,[&lt;/span>&lt;span class="mf">0.2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="s">&amp;#39;LineWidth&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% outside border&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">rectangle&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;Position&amp;#39;&lt;/span>&lt;span class="p">,[&lt;/span>&lt;span class="mf">0.2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="s">&amp;#39;LineWidth&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% horizontal lines&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">rectangle&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;Position&amp;#39;&lt;/span>&lt;span class="p">,[&lt;/span>&lt;span class="mf">3.2&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">9&lt;/span>&lt;span class="p">],&lt;/span>&lt;span class="s">&amp;#39;LineWidth&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% vertical lines&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="nb">i&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">j&lt;/span>&lt;span class="p">=&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">9&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">text&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">j&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mf">0.5&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mf">9.5&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">num2str&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">A&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="nb">j&lt;/span>&lt;span class="p">)),&lt;/span>&lt;span class="s">&amp;#39;FontSize&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">18&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="五结果展示">五、结果展示
+&lt;/h3>&lt;div align=left>
+&lt;img src="q1.png" width=280>
+&lt;img src="a1.png" width=280>
+&lt;/div>
+......再来一组
+&lt;div align=left>
+&lt;img src="q2.png" width=280>
+&lt;img src="a2.png" width=280>
+&lt;/div>
+&lt;p>感谢欣赏，下期再见！&lt;/p></description></item><item><title>商人渡河问题(MATLAB版)</title><link>https://cyzhou1221.github.io/p/%E5%95%86%E4%BA%BA%E6%B8%A1%E6%B2%B3%E9%97%AE%E9%A2%98matlab%E7%89%88/</link><pubDate>Mon, 18 Mar 2019 00:00:00 +0000</pubDate><guid>https://cyzhou1221.github.io/p/%E5%95%86%E4%BA%BA%E6%B8%A1%E6%B2%B3%E9%97%AE%E9%A2%98matlab%E7%89%88/</guid><description>&lt;p>更新于 2024.02.13&lt;/p>
+&lt;h3 id="一问题描述">一、问题描述
+&lt;/h3>&lt;p>3 名商人各带 1 名随从过河(从西岸到东岸)，一只小船最多能容纳 2 人。随从们约定：在河的任意一岸，若随从人数多于商人人数，就杀人越货. 但商人们知道了他们的约定，并且掌握着过河大权，他们该采取怎样的策略才能安全过河？&lt;/p>
+&lt;h3 id="二算法思想">二、算法思想
+&lt;/h3>&lt;p>这个问题实际上是一个&lt;font color=red>&lt;strong>迷宫问题&lt;/strong>&lt;/font>，为什么这样说呢？请听我慢慢道来.&lt;/p>
+&lt;p>首先，我们将每次渡河前西岸的人员分布和船所在的位置统称为一个&lt;font color=red>&lt;b>&amp;ldquo;状态&amp;rdquo;&lt;/b>&lt;/font>，用 $\small [u,v,1/0]$ 表示，其中 $u,v$ 表示商人、随从在西岸的人数，末分量表示船的位置：1 表示船在西岸，0 表示船在东岸.将符合条件的状态挑出来组成&lt;font color=red>&lt;strong>允许状态集合&lt;/strong>&lt;/font>.&lt;/p>
+&lt;p>其次，船最多可容纳两个人. 将渡河方案用 $\small [u,v]$ 表示，其中 $u,v$ 分别表示上船的商人数和随从数，并将其称为&lt;font color=red>&lt;strong>决策变量&lt;/strong>&lt;/font>，决策变量构成的集合称为&lt;font color=red>&lt;strong>决策变量集合&lt;/strong>&lt;/font>.&lt;/p>
+&lt;p>共有 20 种允许状态和 5 个决策变量.&lt;/p>
+&lt;p>&lt;font color=blue>&lt;strong>初始状态&lt;/strong>&lt;/font>为 $\small [3,3,1]$：3 名商人、3 名随从在西岸，船停靠在西岸；&lt;/p>
+&lt;p>&lt;font color=blue>&lt;strong>终止状态&lt;/strong>&lt;/font>为 $\small [0,0,0]$：0 名商人、0 名随从在西岸，船停靠在东岸，此时商人和随从全部到达东岸，这样就确定了&amp;quot;迷宫&amp;quot;的入口和出口.&lt;/p>
+&lt;p>从一个状态变换到另一个状态是通过决策变量实现的，这里的决策变量也就相当于&amp;quot;迷宫&amp;quot;中的一段路.&lt;/p>
+&lt;p>所以，我们的任务就是选择可行的路径，从&amp;quot;迷宫&amp;quot;的入口走到出口.&lt;/p>
+&lt;p>现在你应该觉得这好像是个迷宫问题，但心中应当还存有怀疑，因为只有入口和出口的话，并不能称得上是迷宫问题，那还有什么其他的特点呢？&lt;/p>
+&lt;p>想想我们是怎样解决迷宫问题的？从入口出发，沿某一方向前进，若能走通，则继续往前走；如果不能走通或是有某一分叉可以抵达出口，则沿原路退回到刚刚的分叉点，换个方向继续前进. 重复这个过程，直至探索出所有可能的通路.&lt;/p>
+&lt;p>这个问题也是这样的，从初始状态开始，尝试某种渡河方案，若能到达未经过的允许状态，则采取该渡河方案；如果不能到达任何一种允许状态或者是能够抵达终止状态，则原路返回至刚刚的状态，尝试其他的渡河方案. 重复这个过程，直到探索出所有的渡河方案.&lt;/p>
+&lt;p>读到这儿，你可能会感觉到，这真的就是一个迷宫问题. 好，既然你认同了，咱就继续往下说.&lt;/p>
+&lt;h3 id="三如何实现">三、如何实现
+&lt;/h3>&lt;p>怎样利用程序来解决这类问题呢？&lt;font color=red>&lt;strong>栈+回溯&lt;/strong>&lt;/font>.&lt;/p>
+&lt;p>&lt;font color=red>&lt;strong>栈&lt;/strong>&lt;/font>(什么是栈？你可以把它简单地想象成桶装薯片(只有一端开口)，你只能从上面的薯片依次往下吃才能吃到最后一个，而不能直接吃到最后一个)，具有&amp;quot;后进先出&amp;quot;的特性，所以我们用它来存储经过(或已标记)的状态。&lt;/p>
+&lt;p>初始情况：起始状态已被标记，放在栈中. 考虑某一当前状态(已标记)，则&lt;font color=red>&lt;strong>回溯法&lt;/strong>&lt;/font>的基本思想是：&lt;/p>
+&lt;ol>
+&lt;li>若当前状态是终止状态，则输出路径，之后进行&lt;strong>回溯&lt;/strong>，即返回上一层，去除当前状态标记，当前状态出栈，返回上一状态，上一状态继续尝试没有试过的决策变量；&lt;/li>
+&lt;li>若当前状态不是终止状态，则依次尝试决策变量：
+&lt;ul>
+&lt;li>若当前决策变量能使我到达某个&lt;strong>未标记&lt;/strong>的&lt;strong>允许状态&lt;/strong>，则将在其上面&lt;strong>做标记&lt;/strong>，而后&lt;strong>移动&lt;/strong>到那个状态(此时当前状态已发生改变)，进行&lt;strong>递归调用&lt;/strong>，在调用语句之后，消除那个状态的标记，将其从栈中移出；&lt;/li>
+&lt;li>若当前决策变量不能使我到达&lt;strong>未标记&lt;/strong>的&lt;strong>允许状态&lt;/strong>，则尝试下一决策变量；
+当前状态下所有的决策变量(不论可不可行)都试过之后，进行&lt;strong>回溯&lt;/strong>；&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ol>
+&lt;p>正是这种&lt;strong>回溯&lt;/strong>机制，保证了所有可行&amp;quot;路径&amp;quot;均能被找到.&lt;/p>
+&lt;h3 id="四流程图">四、流程图
+&lt;/h3>&lt;h4 id="1-主程序">1. 主程序
+&lt;/h4>&lt;div align=center>
+&lt;img src="01.png" width=200>
+&lt;/div>
+&lt;h4 id="2-递归函数-crossriver">2. 递归函数 crossRiver
+&lt;/h4>&lt;div align=center>
+&lt;img src="02.png">
+&lt;/div>
+&lt;h3 id="五源程序代码">五、源程序代码
+&lt;/h3>&lt;h4 id="1-主程序-dfsm">1. 主程序 DFS.m
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;span class="lnt">51
+&lt;/span>&lt;span class="lnt">52
+&lt;/span>&lt;span class="lnt">53
+&lt;/span>&lt;span class="lnt">54
+&lt;/span>&lt;span class="lnt">55
+&lt;/span>&lt;span class="lnt">56
+&lt;/span>&lt;span class="lnt">57
+&lt;/span>&lt;span class="lnt">58
+&lt;/span>&lt;span class="lnt">59
+&lt;/span>&lt;span class="lnt">60
+&lt;/span>&lt;span class="lnt">61
+&lt;/span>&lt;span class="lnt">62
+&lt;/span>&lt;span class="lnt">63
+&lt;/span>&lt;span class="lnt">64
+&lt;/span>&lt;span class="lnt">65
+&lt;/span>&lt;span class="lnt">66
+&lt;/span>&lt;span class="lnt">67
+&lt;/span>&lt;span class="lnt">68
+&lt;/span>&lt;span class="lnt">69
+&lt;/span>&lt;span class="lnt">70
+&lt;/span>&lt;span class="lnt">71
+&lt;/span>&lt;span class="lnt">72
+&lt;/span>&lt;span class="lnt">73
+&lt;/span>&lt;span class="lnt">74
+&lt;/span>&lt;span class="lnt">75
+&lt;/span>&lt;span class="lnt">76
+&lt;/span>&lt;span class="lnt">77
+&lt;/span>&lt;span class="lnt">78
+&lt;/span>&lt;span class="lnt">79
+&lt;/span>&lt;span class="lnt">80
+&lt;/span>&lt;span class="lnt">81
+&lt;/span>&lt;span class="lnt">82
+&lt;/span>&lt;span class="lnt">83
+&lt;/span>&lt;span class="lnt">84
+&lt;/span>&lt;span class="lnt">85
+&lt;/span>&lt;span class="lnt">86
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-matlab" data-lang="matlab">&lt;span class="line">&lt;span class="cl">&lt;span class="n">clear&lt;/span>&lt;span class="p">;&lt;/span>&lt;span class="n">clc&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 商人过河问题&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% global 用于声明全局变量&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">State&lt;/span> &lt;span class="n">D&lt;/span> &lt;span class="n">SS&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% State 允许状态集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% D 决策变量集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% SS 状态标记集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">m&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 商人数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">n&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">3&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 随从数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">max&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 船所能容纳的最大人数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 1.设置允许状态集合{[u,v,1/0]}&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% u,v 分别表示商人、随从在西岸的人数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 末分量：1 表示船在西岸，0 表示船在东岸&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">State&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">numS&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 允许状态的数目&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 设定符合要求的人员状态&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 任意一岸，商人数不小于随从数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 或者，某一岸商人数为 0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">u&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">m&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">v&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">n&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">u&lt;/span> &lt;span class="o">&amp;gt;&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="n">v&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">m&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;gt;&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">n&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="p">))&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="n">u&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="o">||&lt;/span> &lt;span class="n">u&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">m&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">numS&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">numS&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">numS&lt;/span>&lt;span class="p">,:)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 设定船的状态&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% [u,v,1] 表示船在西岸，[u,v,0] 表示船在东岸&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">State&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">State&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">ones&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">numS&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>&lt;span class="n">State&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">numS&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">numS&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">numS&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 状态数翻倍&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">disp&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;允许状态集合:&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">State&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;共%d种允许状态\n\n&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">numS&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 2.设定决策变量集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% max: 船所能容纳的最大人数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% [u,v]: u,v 分别表示船上商人和随从人数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">D&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">numD&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">numD&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 决策变量个数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="n">u&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">m&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="n">v&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">n&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;gt;&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="o">&amp;amp;&amp;amp;&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">&amp;lt;&lt;/span>&lt;span class="p">=&lt;/span> &lt;span class="n">max&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">numD&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">numD&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">D&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">numD&lt;/span>&lt;span class="p">,:)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">u&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">v&lt;/span>&lt;span class="p">];&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nb">disp&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;决策变量集合:&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">D&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;共%d个决策变量\n\n&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="n">numD&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 3.设置状态访问标记集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 对状态进行编号: 1 ~ numS&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% SS(i) == 1，表示 i 号状态已访问;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% SS(i) == 0，表示 i 号状态未访问;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">SS&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">numS&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">pos_end&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">pos_passed&lt;/span> &lt;span class="n">k&lt;/span> &lt;span class="n">count&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% pos_end 终止状态编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% pos_passed 留下访问标记的状态编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% k 留下访问标记的状态数目&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% count 解的个数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 初始状态(3,3,1),编号:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">pos_begin&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">find&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ismember&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">State&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s">&amp;#39;rows&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 终止状态(0,0,0),编号:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">pos_end&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">find&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">ismember&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">State&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">0&lt;/span>&lt;span class="p">],&lt;/span> &lt;span class="s">&amp;#39;rows&amp;#39;&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 4.对参数进行初始化&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">count&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">SS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_begin&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 在初始位置留下访问标记&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">pos_begin&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 留下访问标记的状态编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">k&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 5.调用递归函数&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">crossRiver&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_begin&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="n">count&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;No solution.\n&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h4 id="2-过河函数-crossriverm">2. 过河函数 crossRiver.m
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-matlab" data-lang="matlab">&lt;span class="line">&lt;span class="cl">&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">crossRiver&lt;/span>&lt;span class="p">(&lt;/span>pos_currentS&lt;span class="p">)&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">% pos_currentS 当前状态编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% 全局变量&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">State&lt;/span> &lt;span class="n">D&lt;/span> &lt;span class="n">numD&lt;/span> &lt;span class="n">SS&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% State 允许状态集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% numD 决策变量数目&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% D 决策变量集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% SS 状态标记集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">pos_passed&lt;/span> &lt;span class="n">pos_end&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% pos_passed 留下访问标记的状态编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% pos_end 终止状态编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">k&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% k 留下访问标记的状态数目,初值为1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="n">pos_currentS&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="n">pos_end&lt;/span> &lt;span class="c">% 终止情况&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">showSolution&lt;/span>&lt;span class="p">();&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">else&lt;/span> &lt;span class="c">% 非终止情况&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">for&lt;/span> &lt;span class="nb">i&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">numD&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">possibleS&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">zeros&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% 事先为可能的状态分配空间 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">possibleS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_currentS&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="p">((&lt;/span>&lt;span class="o">-&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span>^&lt;span class="p">(&lt;/span>&lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_currentS&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">)))&lt;/span>&lt;span class="o">*&lt;/span>&lt;span class="n">D&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">,:);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 船从西岸到东岸，西岸人数减少；从东岸到西岸，西岸人数增加.&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">possibleS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_currentS&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 船的状态也随之改变&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 按行判断可能的状态是否属于允许状态集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">sign&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">ismember&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">State&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">possibleS&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="s">&amp;#39;rows&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 如果可能的状态属于允许状态集合且未被标记，则进行访问&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 这样做可以避免回到经过的状态，否则程序将陷入死循环&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">sum&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">sign&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">pos_next&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="o">~&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="nb">find&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">sign&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% pos_next:可能状态的编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">SS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_next&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">0&lt;/span> &lt;span class="c">% 若未被标记 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">SS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_next&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 则进行标记 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">k&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">k&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">k&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">pos_next&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 将其添加到标记点组成的集合中&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">crossRiver&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_next&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% 调用自身，进行递归 &lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">SS&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_next&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">0&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 消除标记&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">k&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">k&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span> &lt;span class="c">% 将其从标记点组成的集合中移出&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h4 id="3-输出解的函数-showsolutionm">3. 输出解的函数 showSolution.m
+&lt;/h4>&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-matlab" data-lang="matlab">&lt;span class="line">&lt;span class="cl">&lt;span class="k">function&lt;/span>&lt;span class="w"> &lt;/span>&lt;span class="nf">showSolution&lt;/span>&lt;span class="p">()&lt;/span>&lt;span class="w">
+&lt;/span>&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="w">&lt;/span>&lt;span class="c">% 全局变量&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">global&lt;/span> &lt;span class="n">State&lt;/span> &lt;span class="n">pos_passed&lt;/span> &lt;span class="n">k&lt;/span> &lt;span class="n">count&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% State 允许状态集合&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% pos_passed 留下访问标记的状态编号&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% k 留下访问标记的状态数目，初值为1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="c">% count 解的个数，初值为0&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">count&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="n">count&lt;/span> &lt;span class="o">+&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;Solution %d...\n&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">count&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;\t\t West East\n&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">for&lt;/span> &lt;span class="nb">i&lt;/span> &lt;span class="p">=&lt;/span> &lt;span class="mi">1&lt;/span>&lt;span class="p">:&lt;/span>&lt;span class="n">k&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 输出经过的状态&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39; State%2d:(%d,%d)&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="nb">i&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span> &lt;span class="c">% 船在西岸&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;★_____&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span> &lt;span class="c">% ★ 表示船&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span> &lt;span class="c">% State(pos_passed(i),3) == 0 % 船在东岸&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;_____★&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;(%d,%d)\n&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="mi">3&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="mi">3&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="c">% 输出渡河方案&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="nb">i&lt;/span> &lt;span class="o">~=&lt;/span> &lt;span class="n">k&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">if&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">3&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="mi">1&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39; Plan\t:--(%d,%d)-&amp;gt;\n&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="mi">2&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">else&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39; Plan\t:&amp;lt;-(%d,%d)--\n&amp;#39;&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="o">+&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="o">-&lt;/span> &lt;span class="n">State&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="n">pos_passed&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="nb">i&lt;/span>&lt;span class="p">),&lt;/span>&lt;span class="mi">2&lt;/span>&lt;span class="p">));&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">fprintf&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">&amp;#39;\n&amp;#39;&lt;/span>&lt;span class="p">);&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">end&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;h3 id="六求解结果">六、求解结果
+&lt;/h3>&lt;div align=center>
+&lt;img src="03.png" width=250>
+&lt;img src="04.png" width=250>
+&lt;img src="05.png" width=250>
+&lt;img src="06.png" width=250>
+&lt;/div>
+&lt;h3 id="七小结">七、小结
+&lt;/h3>&lt;p>这是一个经典的过河问题，本质就是在各允许状态之间寻找符合要求的路径，考虑到可能有多条路径，需要使用栈保存经过的状态，以便回溯. 几点心得：&lt;/p>
+&lt;ol>
+&lt;li>合适的数据结构——&lt;font color=#00A600>&lt;strong>栈&lt;/strong>&lt;/font>，对于此问题的处理起到了至关重要的作用；&lt;/li>
+&lt;li>对允许状态进行&lt;font color=#00A600>&lt;strong>编号&lt;/strong>&lt;/font>，方便编程，同时增强了程序的通用性；&lt;/li>
+&lt;li>采用&lt;font color=#00A600 >&lt;strong>标记&lt;/strong>&lt;/font>的方式记录经过的状态，与直接删除经过的状态相比，有着很大的优越性，一是保证了回溯的进行，二是避免了删除操作；&lt;/li>
+&lt;li>类似的问题还有&lt;font color=#0000c6>&lt;b>八皇后问题、人狗鸡米过河问题&lt;/b>&lt;/font>以及其他版本的过河问题；&lt;/li>
+&lt;/ol>
+&lt;p>Plus: 如有错误、可以改进的地方、或任何想说的，请在评论区留言！&lt;/p></description></item></channel></rss>
