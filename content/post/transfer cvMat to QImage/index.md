@@ -48,9 +48,9 @@ If the given rectangle is a null rectangle the entire image is copied.
 
 ### 二、cv::Mat转化为QImage的背景
 
-在使用 <font color=DeepPink>Qt+OpenCV</font> 写程序时，常常需要使用 OpenCV 对图像进行处理，然后利用 Qt 将图像显示出来，所以需要将 cv::Mat 类型转换为 QImage 类型。
+在使用 <font color=DeepPink>Qt+OpenCV</font> 写程序时，常常需要使用 OpenCV 对图像进行处理，然后利用 Qt 将图像显示出来，所以需要将 `cv::Mat` 类型转换为 `QImage` 类型。
 
-通常是利用 QImage 的构造函数进行转换，但是，从构造函数的参数可以看出，这是通过<font color=SeaGre>浅拷贝</font>实现的，所以在 QImage 对象的生存期内，必须保证 uchar *data 指向的内存空间不会被释放。因此在返回 QImage 对象前，需要进行深拷贝。
+通常是利用 `QImage` 的构造函数进行转换，但是，从构造函数的参数可以看出，这是通过<font color=SeaGre>浅拷贝</font>实现的，所以在 `QImage` 对象的生存期内，必须保证 `uchar *data` 指向的内存空间不会被释放。因此在返回 `QImage` 对象前，需要进行深拷贝。
 
 ### 三、代码
 
@@ -79,4 +79,4 @@ QImage Mat2QImage(const cv::Mat &inputMat)
 }
 ```
 
-Plus: QImage 转 cv::Mat 代码可见博文 [大牛博文传送门](https://blog.csdn.net/liyuanbhu/article/details/86307283)
+Plus: `QImage` 转 `cv::Mat` 代码可见博文 [大牛博文传送门](https://blog.csdn.net/liyuanbhu/article/details/86307283)
