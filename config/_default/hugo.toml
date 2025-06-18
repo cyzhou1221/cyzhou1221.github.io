@@ -7,7 +7,7 @@ copyright = "Copyright © 2008–2018, Steve Francia and the Hugo Authors; all r
 
 languageCode = "zh-Hans"
 
-theme = "hugo-clarity"
+theme = ["github.com/chipzoller/hugo-clarity"]
 disqusShortname = "cyzhou1221"
 
 DefaultContentLanguage = "en"
