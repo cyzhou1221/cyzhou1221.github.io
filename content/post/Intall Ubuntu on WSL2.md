@@ -3,6 +3,7 @@ title = "Install Ubuntu on WSL2"
 date = "2025-06-19"
 series = "Environment Setup"
 +++
+<!--more-->
 
 参考链接: https://learn.microsoft.com/zh-cn/windows/wsl/
 
@@ -49,14 +50,14 @@ wsl --manage <distro_name> --move <new_location>
 备份原文件
 
 ```
-sudo cp /etc/apt/sources.list.d/ubuntu.sources    /etc/apt/sources.list.d/ubuntu.sources.bak   
+sudo cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bak   
 ```
 
 创建新的源配置文件
 
- ```
+```
 sudo vim /etc/apt/sources.list.d/tsinghua.sources
- ```
+```
 ‌
 例如，添加清华源的配置如下：
 
