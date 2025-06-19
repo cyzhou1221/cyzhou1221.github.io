@@ -1,8 +1,8 @@
----
++++
 title = "PyTorch 实验环境搭建" 
 date = "2025-06-19"
 series = "Environment Setup"
----
++++
 
 # 配置全局环境
 1. 设置 GPU 加速 for WSL2，如果已经安装 WSL2，只需安装与显卡型号对应的 Windows 驱动即可

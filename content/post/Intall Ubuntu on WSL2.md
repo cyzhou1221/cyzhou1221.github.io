@@ -1,8 +1,8 @@
----
++++
 title = "Install Ubuntu on WSL2" 
 date = "2025-06-19"
 series = "Environment Setup"
----
++++
 
 参考链接: https://learn.microsoft.com/zh-cn/windows/wsl/
 
