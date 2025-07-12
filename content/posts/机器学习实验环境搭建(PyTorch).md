@@ -39,9 +39,9 @@ series = "Environment Setup"
         - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/msys2
       ```
    
-   设置好之后, 输入 `conda info` 查看是否换源成功
+   设置好之后, 输入 `conda info` 查看是否换源成功.
 
-​      
+
 
 # 2. 配置 GMVAE 项目环境
 
@@ -80,7 +80,9 @@ series = "Environment Setup"
 
     复制到命令行进行安装即可
     
-    (注: 这是 CUDA 12.8 版本对应的 PyTorch, 而 `nvidia-smi` 显示本机 CUDA 版本是 12.9, 经过测试, 可以兼容.)
+    (注: 这是 CUDA 12.8 版本对应的 PyTorch, 而 `nvidia-smi` 显示本机 CUDA 版本是 12.9, 经过测试, 可以兼容.)
+
+
 
 # 3. 测试
 
