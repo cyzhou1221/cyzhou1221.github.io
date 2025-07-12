@@ -1,6 +1,6 @@
 baseURL: https://cyzhou1221.github.io/
 title: Changyu's Blog
-paginate: 10    # 首页每页显示的文章数
+pagination.pagerSize: 10
 theme: PaperMod 
 languageCode: zh-cn 
 
