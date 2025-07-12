@@ -1,7 +1,0 @@
-baseURL = 'https://cyzhou1221.github.io/'
-languageCode = 'zh-cn'
-title = 'My New Hugo Site'
-
-[caches]
-  [caches.images]
-    dir = ':cacheDir/images'
