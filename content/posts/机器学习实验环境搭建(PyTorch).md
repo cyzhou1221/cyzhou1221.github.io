@@ -1,9 +1,9 @@
-+++
-title = "机器学习实验环境搭建(PyTorch)" 
-date = "2025-07-12"
-series = "Environment Setup"
+---
+title: 机器学习实验环境搭建(PyTorch) 
+date: 2025-07-12
+series: Environment Setup
+---
 
-+++
 <!--more-->
 
 # 1. 配置全局环境

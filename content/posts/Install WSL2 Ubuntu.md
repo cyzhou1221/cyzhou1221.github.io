@@ -1,9 +1,9 @@
-+++
-title = "Install WSL2 Ubuntu" 
-date = "2025-07-12"
-series = "Environment Setup"
+---
+title: Install WSL2 Ubuntu 
+date: 2025-07-12
+series: Environment Setup
+---
 
-+++
 <!--more-->
 
 参考链接: https://learn.microsoft.com/zh-cn/windows/wsl/
