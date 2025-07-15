@@ -2,22 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/</loc>
+    <loc>https://cyzhou1221.github.io/</loc>
     <lastmod>2025-07-12T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/install-wsl2-ubuntu/</loc>
+    <loc>https://cyzhou1221.github.io/posts/install-wsl2-ubuntu/</loc>
     <lastmod>2025-07-12T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/</loc>
+    <loc>https://cyzhou1221.github.io/posts/</loc>
     <lastmod>2025-07-12T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BApytorch/</loc>
+    <loc>https://cyzhou1221.github.io/posts/%E6%9C%BA%E5%99%A8%E5%AD%A6%E4%B9%A0%E5%AE%9E%E9%AA%8C%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BApytorch/</loc>
     <lastmod>2025-07-12T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/posts/test/</loc>
+    <loc>https://cyzhou1221.github.io/categories/</loc>
   </url><url>
-    <loc>http://localhost:1313/categories/</loc>
+    <loc>https://cyzhou1221.github.io/tags/</loc>
   </url><url>
-    <loc>http://localhost:1313/tags/</loc>
+    <loc>https://cyzhou1221.github.io/posts/test/</loc>
   </url>
 </urlset>
