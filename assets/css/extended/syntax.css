@@ -94,7 +94,7 @@
 /* Background */ .bg { color:#e6edf3;background-color:#0d1117; }
 /* PreWrapper */ .chroma { color:#e6edf3;background-color:#0d1117; }
 /* Other */ .chroma .x {  }
-/* Error */ .chroma .err { color:#f85149 }
+/* Error */ .chroma .err { color:#f85149;background-color:#ffa198; }
 /* CodeLine */ .chroma .cl {  }
 /* LineLink */ .chroma .lnlinks { outline:none;text-decoration:none;color:inherit }
 /* LineTableTD */ .chroma .lntd { vertical-align:top;padding:0;margin:0;border:0; }
