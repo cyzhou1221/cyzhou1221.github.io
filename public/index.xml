@@ -32,16 +32,16 @@
       <link>https://cyzhou1221.github.io/posts/test/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>https://cyzhou1221.github.io/posts/test/</guid>
-      <description>&lt;h1 id=&#34;数学公式&#34;&gt;数学公式&lt;/h1&gt;
+      <description>&lt;h2 id=&#34;数学公式&#34;&gt;数学公式&lt;/h2&gt;
 &lt;p&gt;行内公式 $a+b=c$&lt;/p&gt;
 &lt;p&gt;行间公式
 $$
 a^2 + b^2 = c^2
 $$&lt;/p&gt;
-&lt;h1 id=&#34;字体&#34;&gt;字体&lt;/h1&gt;
+&lt;h2 id=&#34;字体&#34;&gt;字体&lt;/h2&gt;
 &lt;p&gt;英文示例: Best wishes for you!&lt;/p&gt;
 &lt;p&gt;中文示例: 落霞与孤鹜齐飞，秋水共长天一色。&lt;/p&gt;
-&lt;h1 id=&#34;代码块&#34;&gt;代码块&lt;/h1&gt;
+&lt;h2 id=&#34;代码块&#34;&gt;代码块&lt;/h2&gt;
 &lt;p&gt;单行代码样式：&lt;code&gt;composer require --dev barryvdh/laravel-ide-helper&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;大段代码块样式：&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; class=&#34;chroma&#34;&gt;&lt;code class=&#34;language-css&#34; data-lang=&#34;css&#34;&gt;&lt;span class=&#34;line&#34;&gt;&lt;span class=&#34;cl&#34;&gt;&lt;span class=&#34;nt&#34;&gt;body&lt;/span&gt; &lt;span class=&#34;p&#34;&gt;{&lt;/span&gt;
