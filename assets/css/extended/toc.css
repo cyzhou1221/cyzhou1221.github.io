@@ -1,7 +1,7 @@
 :root {
     --nav-width: 1380px;
     --article-width: 650px;
-    --toc-width: 300px;
+    --toc-width: 230px;
 }
 
 .toc {
@@ -45,9 +45,11 @@
     margin: 0;
 }
 
-.active {
+.toc .active {
     font-size: 110%;
     font-weight: 600;
+    color: #614a85;
+    text-decoration: underline;
 }
 
 .toc ul {
@@ -58,6 +60,17 @@
     margin: 0 0 0 20px;
     padding: 0px 15px 15px 20px;
     font-size: 16px;
+
+    /*目录显示高度*/
+    max-height: 83vh;
+    overflow-y: auto;
+}
+
+.toc .inner::-webkit-scrollbar-thumb {
+    /*滚动条*/
+    background: var(--border);
+    border: 7px solid var(--theme);
+    border-radius: var(--radius);
 }
 
 .toc li ul {
