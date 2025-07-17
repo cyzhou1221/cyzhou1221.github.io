@@ -1,3 +1,0 @@
-User-agent: *
-Disallow:
-Sitemap: https://cyzhou1221.github.io/sitemap.xml
