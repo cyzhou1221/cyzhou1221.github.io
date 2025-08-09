@@ -1,6 +1,7 @@
 ---
 title: Test Blog 
 math: true
+categories: 环境搭建
 ---
 
 ## 数学公式
