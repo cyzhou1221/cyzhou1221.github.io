@@ -1,7 +1,7 @@
 ---
 title: 机器学习实验环境搭建(PyTorch) 
 date: 2025-07-12
-series: Environment Setup
+categories: 环境搭建
 ---
 
 <!--more-->
