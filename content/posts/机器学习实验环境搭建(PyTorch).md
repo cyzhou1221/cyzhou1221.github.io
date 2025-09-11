@@ -45,6 +45,11 @@ categories: 环境搭建
 
 # 2. 配置 GMVAE 项目环境
 
+通过命令行创建环境(Simple)
+```
+conda create -n GMVAE pip
+```
+
 通过项目配置文件生成环境 https://docs.conda.io/projects/conda/en/stable/user-guide/tasks/creating-projects.html
 
 1. 创建 `environment.yml` 文件，这里采用 Python 3.12 
