@@ -1,6 +1,6 @@
 ---
 title: Install WSL2 Ubuntu 
-date: 2025-07-12
+date: 2025-09-29
 categories: 环境搭建
 ---
 
@@ -55,7 +55,9 @@ wsl --install Ubuntu-22.04
 wsl --manage <distro_name> --move <new_location>
 ```
 
-
+```
+wsl --manage Ubuntu-22.04 --move E:/Ubuntu
+```
 
 # 3. 更换软件源为清华源
 
@@ -89,45 +91,63 @@ deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main restricted 
 修改完成后，运行以下命令更新软件源，升级系统：
 
 ```
-sudo apt update
-sudo apt upgrade
+sudo apt update && sudo apt upgrade
 ```
 
 
 
 # 后续
 
-##  移除 vim-tiny，安装 vim
+## Install Vim from source
+
+### 1. Connecting to GitHub using SSH keys
+
+[Generating a new SSH key and adding it to the ssh-agent](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
+
+### 2. Install gcc-12 and g++-12
+
 ```
-sudo apt remove vim-tiny
-sudo apt install vim
+sudo apt install gcc-12 g++12
+sudo ln -sf /usr/bin/gcc-12 /usr/bin/gcc
+sudo ln -sf /usr/bin/g++-12 /usr/bin/g++
 ```
 
+### 3. Compile and install Vim
 
-##  [可选]卸载 snap
-教程链接: https://zhuanlan.zhihu.com/p/665760051
+https://github.com/vim/vim
 
-1. 卸载 snap 管理的软件
-   1. 列出软件 
-        ```
-        sudo snap list
-        ```
-	2. 依次卸载
-        ```
-        sudo snap remove xxx
-        ```
-2. 卸载 snap 服务项
-    1. 列出 snap 服务项，
-        ```
-        sudo systemctl | grep snap
-        ```
-    2. 依次 disable，
-        ```
-        sudo systemctl disable snapd.xxx.xxx
-        ```
-3. 卸载 snap 
-    ```
-    sudo apt-get purge snapd
-    ```
+1. 更改 `vim/src` 中的 `Makefile`: `--enable-python3interp`, `--disable-gui`
+   ```
+   cd vim/src
+   ```
+   
+2. ```
+   make reconfig
+   ```
+   
+3. 卸载已经安装的 Vim
+   ```
+   sudo apt purge vim-tiny
+   sudo apt purge vim
+   sudo apt autoremove
+   ```
+   
+4. ```
+   sudo make install
+   ```
 
-注：purge - Remove packages and config files
+### 4. Configure
+1. Copy the [Configuration](https://github.com/cyzhou1221/dotfiles),
+   ```
+   cd dotfiles
+   cp -r vim/.vim ~/
+   cp vim/.vimrc .
+   ```
+   
+2. Install Vim-Plug and plugins
+   1. [Vim-Plug](https://github.com/junegunn/vim-plug), Download plug.vim and put it in the "autoload" directory.
+   2. Before doing this, make sure you have configured the proxy correctly so that you can access github.com.
+      ```
+      vim
+      :PlugInstall
+      ```
