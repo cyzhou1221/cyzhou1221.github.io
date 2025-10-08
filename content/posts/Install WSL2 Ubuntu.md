@@ -151,3 +151,20 @@ https://github.com/vim/vim
       vim
       :PlugInstall
       ```
+
+## [SOLVED]绘图窗口无法在 Windows 中显示
+
+问题描述：
+
+```
+qt.qpa.plugin: Could not load the Qt platform plugin "xcb" in "/home/.../python3.10/site-packages/cv2/qt/plugins" even though it was found.
+This application failed to start because no Qt platform plugin could be initialized. Reinstalling the application may fix this problem.
+
+Available platform plugins are: xcb.
+```
+
+在[官方文档](https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/gui-apps)找到的解决方法：
+
+```
+sudo apt-get install x11-apps -y
+```
