@@ -66,7 +66,7 @@ conda create -n GMVAE pip
 
 2. 输入  
     ```
-    conda env --create environment.yml
+    conda env create -f environment.yml
     ```
     进行环境创建
 
