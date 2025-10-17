@@ -107,29 +107,36 @@ sudo apt update && sudo apt upgrade
 ### 2. Install gcc-12 and g++-12
 
 ```
-sudo apt install gcc-12 g++12
+sudo apt install gcc-12 g++12 -y
 sudo ln -sf /usr/bin/gcc-12 /usr/bin/gcc
 sudo ln -sf /usr/bin/g++-12 /usr/bin/g++
 ```
 
 ### 3. Compile and install Vim
 
-https://github.com/vim/vim
+官方仓库地址: https://github.com/vim/vim
 
+大概需要 5mins~
+
+0. 安装编译依赖项
+   ```
+   sudo apt install git make clang libtool-bin -y
+   ```
+   
 1. 更改 `vim/src` 中的 `Makefile`: `--enable-python3interp`, `--disable-gui`
    ```
    cd vim/src
    ```
    
 2. ```
-   make reconfig
+   make reconfig -j8
    ```
    
 3. 卸载已经安装的 Vim
    ```
-   sudo apt purge vim-tiny
-   sudo apt purge vim
-   sudo apt autoremove
+   sudo apt purge vim-tiny -y
+   sudo apt purge vim -y
+   sudo apt autoremove -y
    ```
    
 4. ```
