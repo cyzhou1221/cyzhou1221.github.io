@@ -4,6 +4,8 @@ math: true
 categories: 环境搭建
 ---
 
+<!--more-->
+
 ## 数学公式
 
 行内公式 $a+b=c$
