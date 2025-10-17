@@ -98,67 +98,6 @@ sudo apt update && sudo apt upgrade
 
 # 后续
 
-## Install Vim from source
-
-### 1. Connecting to GitHub using SSH keys
-
-[Generating a new SSH key and adding it to the ssh-agent](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
-
-### 2. Install gcc-12 and g++-12
-
-```
-sudo apt install gcc-12 g++12 -y
-sudo ln -sf /usr/bin/gcc-12 /usr/bin/gcc
-sudo ln -sf /usr/bin/g++-12 /usr/bin/g++
-```
-
-### 3. Compile and install Vim
-
-官方仓库地址: https://github.com/vim/vim
-
-大概需要 5mins~
-
-0. 安装编译依赖项
-   ```
-   sudo apt install git make clang libtool-bin -y
-   ```
-   
-1. 更改 `vim/src` 中的 `Makefile`: `--enable-python3interp`, `--disable-gui`
-   ```
-   cd vim/src
-   ```
-   
-2. ```
-   make reconfig -j8
-   ```
-   
-3. 卸载已经安装的 Vim
-   ```
-   sudo apt purge vim-tiny -y
-   sudo apt purge vim -y
-   sudo apt autoremove -y
-   ```
-   
-4. ```
-   sudo make install
-   ```
-
-### 4. Configure
-1. Copy the [Configuration](https://github.com/cyzhou1221/dotfiles),
-   ```
-   cd dotfiles
-   cp -r vim/.vim ~/
-   cp vim/.vimrc .
-   ```
-   
-2. Install Vim-Plug and plugins
-   1. [Vim-Plug](https://github.com/junegunn/vim-plug), Download plug.vim and put it in the "autoload" directory.
-   2. Before doing this, make sure you have configured the proxy correctly so that you can access github.com.
-      ```
-      vim
-      :PlugInstall
-      ```
-
 ## [SOLVED]绘图窗口无法在 Windows 中显示
 
 问题描述：
