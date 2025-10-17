@@ -21,6 +21,8 @@ export DISPLAY=:1
 xrandr --size 1920x1080
 dbus-launch --exit-with-session startplasma-x11 &
 ```
+KDE 桌面启动之后，可通过桌面窗口对分辨率和缩放比例进行进一步的设置.
+
 
 `close-desktop.sh`
 ```
