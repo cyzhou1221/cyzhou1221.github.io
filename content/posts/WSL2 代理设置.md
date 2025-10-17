@@ -4,6 +4,8 @@ date: 2025-09-30
 categories: 环境搭建
 ---
 
+<!--more-->
+
 参考链接：https://zinglix.xyz/2020/04/18/wsl2-proxy/
 
 **背景**：
@@ -212,4 +214,5 @@ proxy test
 ```
 curl: (56) Recv failure: Connection reset by peer
 ```
+
 说明已停止工作.
