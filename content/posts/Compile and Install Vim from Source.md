@@ -27,6 +27,7 @@ g++ --version
 
 
 ## 3. Compile and install Vim
+[参考博客](https://medium.com/@nayan.ruparelia1/vim-with-python-how-to-d687920ce8b2)
 
 官方仓库地址: https://github.com/vim/vim
 
@@ -37,20 +38,29 @@ g++ --version
    sudo apt install git make clang libtool-bin -y
    ```
    
-1. 下载仓库代码, 更改 `vim/src` 中的 `Makefile`: `--enable-python3interp`, `--disable-gui`
+1. 下载仓库代码
    ```
-   cd vim/src
+   git clone https://github.com/vim/vim.git
    ```
+
+2. 添加 Python3 支持，并取消 GUI 功能
+   ```
+   sudo apt install libpython3-dev
+   ```
+   ```
+   ./configure --enable-python3interp \
+               --with-python3-command=/usr/bin/python3 \
+               --with-python3-config-dir=/usr/lib/python3.10/config-* \
+               --disable-gui
+   ```
+   其中 `--with-python3-config-dir` 后的参数通过
+   ```
+   ls -al /usr/lib/python*
+   ```
+   进行查找.
    
-2. ```
-   make reconfig -j8
-   ```
-   
-3. 卸载系统中的 Vim
-   ```
-   sudo apt purge vim-tiny -y
-   sudo apt purge vim -y
-   sudo apt autoremove -y
+3. ```
+   make -j10
    ```
    
 4. ```
@@ -59,62 +69,150 @@ g++ --version
 
 5. 验证安装结果
    ```
-   source ~/.bashrc
-   vim --version
+   /usr/local/bin/vim --version
    ```
    得到输出如下：
    ```
-   source ~/.bashrc
-   VIM - Vi IMproved 9.1 (2024 Jan 02, compiled Oct 17 2025 19:26:23)
-   Included patches: 1-1863
+   VIM - Vi IMproved 9.1 (2024 Jan 02, compiled Nov 19 2025 08:51:45)
+   Included patches: 1-1918
    Compiled by cyzhou@CYZHOU-LEGION
    Huge version without GUI.  Features included (+) or not (-):
-   +acl                 +jumplist            -sodium
-   +arabic              +keymap              -sound
-   +autocmd             +lambda              +spell
-   +autochdir           +langmap             +startuptime
-   -autoservername      +libcall             +statusline
-   -balloon_eval        +linebreak           -sun_workshop
-   +balloon_eval_term   +lispindent          +syntax
-   -browse              +listcmds            +tabpanel
-   ++builtin_terms      +localmap            +tag_binary
-   +byte_offset         -lua                 -tag_old_static
-   +channel             +menu                -tag_any_white
-   +cindent             +mksession           -tcl
-   +clientserver        +modify_fname        +termguicolors
-   +clipboard           +mouse               +terminal
-   +clipboard_provider  -mouseshape          +terminfo
-   +cmdline_compl       +mouse_dec           +termresponse
-   +cmdline_hist        -mouse_gpm           +textobjects
-   +cmdline_info        -mouse_jsbterm       +textprop
-   +comments            +mouse_netterm       +timers
-   +conceal             +mouse_sgr           +title
-   +cryptv              -mouse_sysmouse      -toolbar
-   +cscope              +mouse_urxvt         +user_commands
-   +cursorbind          +mouse_xterm         +vartabs
-   +cursorshape         +multi_byte          +vertsplit
-   +dialog_con          +multi_lang          +vim9script
-   +diff                -mzscheme            +viminfo
-   +digraphs            +netbeans_intg       +virtualedit
-   -dnd                 +num64               +visual
-   -ebcdic              +packages            +visualextra
-   +emacs_tags          +path_extra          +vreplace
-   +eval                -perl                -wayland
-   +ex_extra            +persistent_undo     -wayland_clipboard
-   +extra_search        +popupwin            -wayland_focus_steal
-   -farsi               +postscript          +wildignore
-   +file_in_path        +printer             +wildmenu
-   +find_in_path        +profile             +windows
-   +float               -python              +writebackup
-   +folding             -python3             -X11
-   -footer              +quickfix            +xattr
-   +fork()              +reltime             -xfontset
-   -gettext             +rightleft           -xim
-   -hangul_input        -ruby                -xpm
-   +iconv               +scrollbind          -xsmp
-   +insert_expand       +signs               -xterm_clipboard
-   +ipv6                +smartindent         -xterm_save
-   +job                 +socketserver
+   +acl
+   +arabic
+   +autocmd
+   +autochdir
+   -autoservername
+   -balloon_eval
+   +balloon_eval_term
+   -browse
+   ++builtin_terms
+   +byte_offset
+   +channel
+   +cindent
+   +clientserver
+   -clipboard
+   +cmdline_compl
+   +cmdline_hist
+   +cmdline_info
+   +comments
+   +conceal
+   +cryptv
+   +cscope
+   +cursorbind
+   +cursorshape
+   +dialog_con
+   +diff
+   +digraphs
+   -dnd
+   -ebcdic
+   +emacs_tags
+   +eval
+   +ex_extra
+   +extra_search
+   -farsi
+   +file_in_path
+   +find_in_path
+   +float
+   +folding
+   -footer
+   +fork()
+   -gettext
+   -hangul_input
+   +iconv
+   +insert_expand
+   +ipv6
+   +job
+   +jumplist
+   +keymap
+   +lambda
+   +langmap
+   +libcall
+   +linebreak
+   +lispindent
+   +listcmds
+   +localmap
+   -lua
+   +menu
+   +mksession
+   +modify_fname
+   +mouse
+   -mouseshape
+   +mouse_dec
+   -mouse_gpm
+   -mouse_jsbterm
+   +mouse_netterm
+   +mouse_sgr
+   -mouse_sysmouse
+   +mouse_urxvt
+   +mouse_xterm
+   +multi_byte
+   +multi_lang
+   -mzscheme
+   +netbeans_intg
+   +num64
+   +packages
+   +path_extra
+   -perl
+   +persistent_undo
+   +popupwin
+   +postscript
+   +printer
+   +profile
+   -python
+   +python3
+   +quickfix
+   +reltime
+   +rightleft
+   -ruby
+   +scrollbind
+   +signs
+   +smartindent
+   +socketserver
+   -sodium
+   -sound
+   +spell
+   +startuptime
+   +statusline
+   -sun_workshop
+   +syntax
+   +tabpanel
+   +tag_binary
+   -tag_old_static
+   -tag_any_white
+   -tcl
+   +termguicolors
+   +terminal
+   +terminfo
+   +termresponse
+   +textobjects
+   +textprop
+   +timers
+   +title
+   -toolbar
+   +user_commands
+   +vartabs
+   +vertsplit
+   +vim9script
+   +viminfo
+   +virtualedit
+   +visual
+   +visualextra
+   +vreplace
+   -wayland
+   -wayland_clipboard
+   -wayland_focus_steal
+   +wildignore
+   +wildmenu
+   +windows
+   +writebackup
+   -X11
+   +xattr
+   -xfontset
+   -xim
+   -xpm
+   -xsmp
+   -xterm_clipboard
+   -xterm_save
       system vimrc file: "$VIM/vimrc"
         user vimrc file: "$HOME/.vimrc"
     2nd user vimrc file: "~/.vim/vimrc"
@@ -122,8 +220,8 @@ g++ --version
          user exrc file: "$HOME/.exrc"
           defaults file: "$VIMRUNTIME/defaults.vim"
      fall-back for $VIM: "/usr/local/share/vim"
-   Compilation: gcc -c -I. -Iproto -DHAVE_CONFIG_H -O2 -fno-strength-reduce -Wall -Wno-deprecated-declarations -D_REENTRANT -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1
-   Linking: gcc -L/usr/local/lib -Wl,--as-needed -o vim -lm -ltinfo
+   Compilation: gcc -c -I. -Iproto -DHAVE_CONFIG_H -g -O2 -D_REENTRANT -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1
+   Linking: gcc -L/usr/local/lib -Wl,--as-needed -o vim -lm -ltinfo -L/usr/lib/python3.10/config-* -lpython3.10
    ```
    表示安装成功.
 
