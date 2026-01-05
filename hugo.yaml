@@ -140,3 +140,16 @@ markup:
     lineNumbersInTable: false
     noClasses: false
     style: ""
+  goldmark:
+    extensions:
+      passthrough:
+        enable: true
+        delimiters:
+          block:
+            - - '\['
+              - '\]'
+            - - '$$'
+              - '$$'
+          inline:
+            - - '\('
+              - '\)'
